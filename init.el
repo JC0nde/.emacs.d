@@ -5,6 +5,16 @@
 ;;; No splash screen please ... jeez
 (setq inhibit-startup-message t)
 
+;;; Themes folder path and theme file
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(load-theme 'material t)
+
+;;; Set Fonts
+(set-face-attribute 'default nil
+		    :family "Source Code Pro" :height 110)
+(set-face-attribute 'variable-pitch nil
+		    :family "Fira Sans" :height 120 :weight 'regular)
+
 ;;; Minimal UI
 (scroll-bar-mode -1)
 (tool-bar-mode   -1)
@@ -13,13 +23,13 @@
 (global-linum-mode 1)
 (global-hl-line-mode t)
 (fset 'yes-or-no-p 'y-or-n-p)
-; flashes the cursor's line when you scroll
+
 ;;; Package configs
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(("org"   . "http://orgmode.org/elpa/")
-                         ("gnu"   . "http://elpa.gnu.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
+			 ("gnu"   . "http://elpa.gnu.org/packages/")
+			 ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
 ;;; Bootstrap `use-package'
@@ -27,6 +37,7 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+;;; flashes the cursor's line when you scroll
 (use-package beacon
   :ensure t
   :config
@@ -38,14 +49,6 @@
   :config
   (global-hungry-delete-mode))
 
-
-
-;; Themes folder
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-
-;; Active Theme
-(load-theme 'material t)
-
 ;;; Set path to dependencies
 (setq settings-dir
       (expand-file-name "settings" user-emacs-directory))
@@ -56,7 +59,7 @@
 ;;; Write backup files to own directory
 (setq backup-directory-alist
       `(("." . ,(expand-file-name
-                 (concat user-emacs-directory "backups")))))
+		 (concat user-emacs-directory "backups")))))
 
 ;;; Write all autosave files in the tmp dir
 (setq auto-save-file-name-transforms
@@ -133,6 +136,40 @@
   (setq helm-swoop-use-line-number-face t)
   )
 
+;;; Hydra
+(use-package hydra
+  :ensure hydra
+  :init
+  (global-set-key
+   (kbd "C-x t")
+   (defhydra hydra-git-gutter (:body-pre (git-gutter+-mode 1)
+					 :hint nil)
+     "
+Git gutter:
+  _j_: next hunk        _s_tage hunk     _q_uit
+  _k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
+  ^ ^                   _p_opup hunk
+  _h_: first hunk
+  _l_: last hunk        set start _R_evision
+"
+     ("j" git-gutter+-next-hunk)
+     ("k" git-gutter+-previous-hunk)
+     ("h" (progn (goto-char (point-min))
+		 (git-gutter+-next-hunk 1)))
+     ("l" (progn (goto-char (point-min))
+		 (git-gutter+-previous-hunk 1)))
+     ("s" git-gutter+-stage-hunk)
+     ("r" git-gutter+-revert-hunk)
+     ("p" git-gutter+-popup-hunk)
+     ("R" git-gutter+-set-start-revision)
+     ("q" nil :color blue)
+     ("Q" (progn (git-gutter+-mode -1)
+		 ;; git-gutter-fringe doesn't seem to
+		 ;; clear the markup right away
+		 (sit-for 0.1)
+		 (git-gutter+-clear))
+      :color blue))))
+
 ;;; Smartparens
 (use-package smartparens
   :ensure t
@@ -147,7 +184,7 @@
 (use-package which-key
   :ensure t
   :init
-  (setq which-key-separator " ")
+  (setq which-key-separator " → ")
   (setq which-key-prefix-prefix "+")
   :config
   (which-key-mode 1))
@@ -172,21 +209,21 @@
       '((sequence "TODO" "WORKING" "HOLD" "|" "DONE")))
 (setq org-todo-keyword-faces
       '(("TODO"    . "blue")
-        ("WORKING" . "yellow")
-        ("HOLD"    . "red")
-        ("DONE"    . "green")))
+	("WORKING" . "yellow")
+	("HOLD"    . "red")
+	("DONE"    . "green")))
 (use-package org-bullets
   :ensure t
   :init
   (add-hook 'org-mode-hook (lambda ()
-                             (org-bullets-mode 1)
-                             ;; (hide-mode-line-mode 1)
+			     (org-bullets-mode 1)
+			     ;; (hide-mode-line-mode 1)
 
-                             (buffer-face-mode))))
+			     (buffer-face-mode))))
 
 ;; Reveal.js
 (use-package ox-reveal
-:ensure ox-reveal)
+  :ensure ox-reveal)
 
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)
@@ -199,7 +236,7 @@
   (interactive)
   (let (beg end)
     (if (region-active-p)
-        (setq beg (region-beginning) end (region-end))
+	(setq beg (region-beginning) end (region-end))
       (setq beg (line-beginning-position) end (line-end-position)))
     (comment-or-uncomment-region beg end)
     (next-logical-line)))
@@ -305,14 +342,64 @@
 (use-package company
   :ensure t
   :config
-  (add-hook 'after-init-hook 'global-company-mode))
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 3)
+  (global-company-mode))
 
 (use-package magit
   :ensure t
   :init
   (progn
-  (bind-key "C-x g" 'magit-status)
-  ))
+    (bind-key "C-x g" 'magit-status)))
+
+(use-package fringe-helper
+  :ensure t)
+
+(use-package git-gutter-fringe+
+  :ensure t
+  :init
+  (global-git-gutter+-mode +1))
+
+(use-package git-timemachine
+  :ensure t)
+
+;;; ibuffer
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(setq ibuffer-saved-filter-groups
+      (quote (("default"
+	       ("dired" (mode . dired-mode))
+	       ("org" (name . "^.*org$"))
+
+	       ("web" (or (mode . web-mode) (mode . js2-mode)))
+	       ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+	       ("mu4e" (name . "\*mu4e\*"))
+	       ("programming" (or
+			       (mode . python-mode)
+			       (mode . c++-mode)))
+	       ("emacs" (or
+			 (name . "^\\*scratch\\*$")
+			 (name . "^\\*Messages\\*$")))
+	       ))))
+(add-hook 'ibuffer-mode-hook
+	  (lambda ()
+	    (ibuffer-auto-mode 1)
+	    (ibuffer-switch-to-saved-filter-groups "default")))
+
+;; don't show these
+					;(add-to-list 'ibuffer-never-show-predicates "zowie")
+;; Don't show filter groups if there are no buffers in that group
+(setq ibuffer-show-empty-filter-groups nil)
+
+;; Don't ask for confirmation to delete marked buffers
+(setq ibuffer-expert t)
+
+;;; Emmet
+(use-package emmet-mode
+  :ensure t
+  :config
+  (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+  (add-hook 'web-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
+  (add-hook 'css-mode-hook  'emmet-mode)) ;; enable Emmet's css abbreviation.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language Supports ;;;
