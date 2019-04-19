@@ -29,7 +29,8 @@
 (setq package-enable-at-startup nil)
 (setq package-archives '(("org"   . "http://orgmode.org/elpa/")
 			 ("gnu"   . "http://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")))
+			 ("melpa" . "https://melpa.org/packages/")
+			 ("melpa" . "http://melpa.milkbox.net/packages/")))
 (package-initialize)
 
 ;;; Bootstrap `use-package'
@@ -253,6 +254,7 @@ Git gutter:
 	   "SPC" '(helm-M-x :which-key "M-x")
 	   "<f1>" '(helm-apropos :which-key "à propos")
 	   "bb" '(helm-mini :which-key "helm mini")
+	   "fed" '(myinit :which-key "init file")
 	   "ff" '(helm-find-files :which-key "find files")
 	   "fr" '(helm-recentf :which-key "recent files")
 	   "fs" '(save-buffer :which-key "save file")
@@ -292,7 +294,12 @@ Git gutter:
 	   "at"  '(urxvt :which-key "open terminal")
 	   ))
 
-;; Flycheck
+;;; Load init file
+(defun myinit ()
+  "Go to init file"
+  (interactive)
+  (find-file "~/.emacs.d/init.el"))
+;;; Flycheck
 (use-package flycheck
   :ensure t
   :init
@@ -344,6 +351,8 @@ Git gutter:
   :config
   (setq company-idle-delay 0)
   (setq company-minimum-prefix-length 3)
+  (add-to-list 'company-backends 'company-tern)
+  ; (add-to-list 'company-backends 'ac-js2-company)
   (global-company-mode))
 
 (use-package magit
@@ -436,6 +445,20 @@ Git gutter:
     (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
     ;;(tern-ac-setup)
     ))
+
+(use-package simple-httpd
+  :ensure t
+  :config
+  (setq httpd-root "~/LocalDev/")
+  (httpd-start))
+
+(use-package skewer-mode
+  :ensure t
+  :config
+  (add-hook 'js2-mode-hook 'skewer-mode)
+  (add-hook 'css-mode-hook 'skewer-css-mode)
+  (add-hook 'html-mode-hook 'skewer-html-mode)
+  (add-hook 'web-mode-hook 'skewer-html-mode))
 
 ;; turn on flychecking globally
 (add-hook 'after-init-hook #'global-flycheck-mode)
