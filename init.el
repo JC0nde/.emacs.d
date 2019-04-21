@@ -44,6 +44,12 @@
   :config
   (beacon-mode 1))
 
+(use-package linum-relative
+  :ensure t
+  :config
+  (require 'linum-relative)
+  (linum-relative-mode))
+
 ;;; deletes all the whitespace when you hit backspace or delete
 (use-package hungry-delete
   :ensure t
@@ -255,6 +261,7 @@ Git gutter:
 	   "<f1>" '(helm-apropos :which-key "à propos")
 	   "bb" '(helm-mini :which-key "helm mini")
 	   "fed" '(myinit :which-key "init file")
+	   "fer" '(myinitR :which-key "init file")
 	   "ff" '(helm-find-files :which-key "find files")
 	   "fr" '(helm-recentf :which-key "recent files")
 	   "fs" '(save-buffer :which-key "save file")
@@ -293,12 +300,61 @@ Git gutter:
 	   ;; Others
 	   "at"  '(urxvt :which-key "open terminal")
 	   ))
+(use-package pdf-tools
+  :ensure t)
+(use-package org-pdfview
+  :ensure t)
+
+(require 'pdf-tools)
+(require 'org-pdfview)
 
 ;;; Load init file
 (defun myinit ()
-  "Go to init file"
+  "Go to init file."
   (interactive)
   (find-file "~/.emacs.d/init.el"))
+
+;;; Reload init file
+
+(defun myinitR ()
+  "Reload to init file."
+  (interactive)
+  (load-file "~/.emacs.d/init.el"))
+
+;;; mark and edit all copies of the marked region simultaniously.
+(use-package iedit
+  :ensure t)
+
+;;; if you're windened, narrow to the region, if you're narrowed, widen
+;;; bound to C-x n
+(defun narrow-or-widen-dwim (p)
+  "If the buffer is narrowed,  it widens.  Otherwise,  it narrows intelligently.
+Intelligently means: region, org-src-block, org-subtree, or defun,
+whichever applies first.
+Narrowing to org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer is already
+narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+	((region-active-p)
+	 (narrow-to-region (region-beginning) (region-end)))
+	((derived-mode-p 'org-mode)
+	 ;; `org-edit-src-code' is not a real narrowing command.
+	 ;; Remove this first conditional if you don't want it.
+	 (cond ((ignore-errors (org-edit-src-code))
+		(delete-other-windows))
+	       ((org-at-block-p)
+		(org-narrow-to-block))
+	       (t (org-narrow-to-subtree))))
+	(t (narrow-to-defun))))
+
+;; (define-key endless/toggle-map "n" #'narrow-or-widen-dwim)
+;; This line actually replaces Emacs' entire narrowing keymap, that's
+;; how much I like this command. Only copy it if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+
 ;;; Flycheck
 (use-package flycheck
   :ensure t
@@ -350,9 +406,11 @@ Git gutter:
   :ensure t
   :config
   (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 3)
+  (setq company-minimum-prefix-length 1)
+  (setq company-selection-wrap-around t)
+  (company-tng-configure-default)
   (add-to-list 'company-backends 'company-tern)
-  ; (add-to-list 'company-backends 'ac-js2-company)
+					; (add-to-list 'company-backends 'ac-js2-company)
   (global-company-mode))
 
 (use-package magit
@@ -435,30 +493,19 @@ Git gutter:
 (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
 (setq exec-path (append exec-path '("/usr/local/bin")))
 
+(use-package company-tern
+  :ensure t
+  :init
+  (add-to-list 'company-backends 'company-tern))
+
 (use-package tern
   :ensure tern
   :ensure tern-auto-complete
   :config
   (progn
-    (add-hook 'js-mode-hook (lambda () (tern-mode t)))
     (add-hook 'js2-mode-hook (lambda () (tern-mode t)))
     (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-    ;;(tern-ac-setup)
     ))
-
-(use-package simple-httpd
-  :ensure t
-  :config
-  (setq httpd-root "~/LocalDev/")
-  (httpd-start))
-
-(use-package skewer-mode
-  :ensure t
-  :config
-  (add-hook 'js2-mode-hook 'skewer-mode)
-  (add-hook 'css-mode-hook 'skewer-css-mode)
-  (add-hook 'html-mode-hook 'skewer-html-mode)
-  (add-hook 'web-mode-hook 'skewer-html-mode))
 
 ;; turn on flychecking globally
 (add-hook 'after-init-hook #'global-flycheck-mode)
@@ -502,7 +549,7 @@ Git gutter:
 
 ;; adjust indents for web-mode to 2 spaces
 (defun my-web-mode-hook ()
-  "Hooks for Web mode. Adjust indents"
+  "Hooks for Web mode.  Adjust indent."
   ;;; http://web-mode.org/
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
@@ -514,6 +561,24 @@ Git gutter:
 (unless (server-running-p)
   (server-start))
 
+;;;;;;;;;;;;;;;;;;;;;;;
+;;; Live dev setup  ;;;
+;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; (use-package simple-httpd
+;;   :ensure t
+;;   :config
+;;   (setq httpd-root "~/LocalDev/")
+;;   (httpd-start))
+
+;; (use-package skewer-mode
+;;   :ensure t
+;;   :config
+;;   (add-hook 'js2-mode-hook 'skewer-mode)
+;;   (add-hook 'css-mode-hook 'skewer-css-mode)
+;;   (add-hook 'html-mode-hook 'skewer-html-mode)
+;;   (add-hook 'web-mode-hook 'skewer-html-mode))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -521,7 +586,7 @@ Git gutter:
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
+    (linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
