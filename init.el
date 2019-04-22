@@ -646,6 +646,7 @@ narrowed."
  '(helm-rg-file-match-face ((t (:foreground "LightGreen" :underline t))))
  '(helm-rg-preview-line-highlight ((t (:background "LightGreen" :foreground "black"))))
  '(linum ((t (:inherit (shadow default) :background "#212121" :foreground "#586e75"))))
+ '(linum-relative-current-face ((t (:background "#212121" :foreground "#2BA3FF" :box nil))))
  '(mode-line ((t (:background "#191919" :box nil))))
  '(mode-line-inactive ((t (:background "#282828" :foreground "#5B6268" :box nil))))
  '(term ((t (:foreground "#fafafa")))))
