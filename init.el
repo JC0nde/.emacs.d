@@ -24,13 +24,21 @@
 (global-hl-line-mode t)
 (fset 'yes-or-no-p 'y-or-n-p)
 
+;;; UTF-8 everywhere, forever
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(when (display-graphic-p)
+  (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
+
 ;;; Package configs
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(("org"   . "http://orgmode.org/elpa/")
 			 ("gnu"   . "http://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")
-			 ("melpa" . "http://melpa.milkbox.net/packages/")))
+			 ("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
 
 ;;; Bootstrap `use-package'
@@ -45,10 +53,10 @@
   (beacon-mode 1))
 
 (use-package linum-relative
-  :ensure t
-  :config
-  (require 'linum-relative)
-  (linum-relative-mode))
+   :ensure t
+   :config
+   (linum-relative-mode)
+   (setq linum-relative-current-symbol ""))
 
 ;;; deletes all the whitespace when you hit backspace or delete
 (use-package hungry-delete
@@ -209,24 +217,57 @@ Git gutter:
   :init
   (global-undo-tree-mode))
 
-;;; OrgMode Configs
-(setq org-return-follows-link t)
-(setq org-html-validation-link nil)
-(setq org-todo-keywords
-      '((sequence "TODO" "WORKING" "HOLD" "|" "DONE")))
-(setq org-todo-keyword-faces
-      '(("TODO"    . "blue")
-	("WORKING" . "yellow")
-	("HOLD"    . "red")
-	("DONE"    . "green")))
+;;; OrgMode setup
+(use-package org
+  :ensure t
+  :pin org)
+
+(setenv "BROWSER" "chromium-browser")
+
 (use-package org-bullets
   :ensure t
-  :init
-  (add-hook 'org-mode-hook (lambda ()
-			     (org-bullets-mode 1)
-			     ;; (hide-mode-line-mode 1)
-
+  :config
+  (add-hook 'org-mode-hook (lambda ()(org-bullets-mode 1)
 			     (buffer-face-mode))))
+
+(custom-set-variables
+ '(org-directory "~/Org")
+ '(org-default-notes-file (concat org-directory "/notes.org"))
+ '(org-export-html-postamble nil)
+ '(org-hide-leading-stars t)
+ '(org-startup-folded (quote overview))
+ '(org-startup-indented t)
+ '(org-confirm-babel-evaluate nil)
+ '(org-src-fontify-natively t)
+ )
+
+(setq org-file-apps
+          (append '(
+                    ("\\.pdf\\'" . "zathura %s")
+                    ("\\.x?html?\\'" . "/usr/bin/chromium-browser %s")
+                    ) org-file-apps ))
+
+(global-set-key "\C-ca" 'org-agenda)
+    (setq org-agenda-start-on-weekday nil)
+    (setq org-agenda-custom-commands
+          '(("c" "Simple agenda view"
+             ((agenda "")
+              (alltodo "")))))
+
+(global-set-key (kbd "C-c c") 'org-capture)
+
+;;; Custom org defuns for capture
+(defadvice org-capture-finalize 
+        (after delete-capture-frame activate)  
+      "Advise capture-finalize to close the frame"  
+      (if (equal "capture" (frame-parameter nil 'name))  
+          (delete-frame)))
+
+    (defadvice org-capture-destroy 
+        (after delete-capture-frame activate)  
+      "Advise capture-destroy to close the frame"  
+      (if (equal "capture" (frame-parameter nil 'name))  
+          (delete-frame)))
 
 ;; Reveal.js
 (use-package ox-reveal
