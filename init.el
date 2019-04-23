@@ -5,6 +5,8 @@
 ;; Author: Jonathan Conde <mail@jonathanconde.com>
 ;; URL: https://github.com/JC0nde/.emacs.d/
 
+;; This file is not part of GNU Emacs.
+
 ;;; Commentary:
 
 ;; This is my personal Emacs configuration.  Nothing more, nothing less.
