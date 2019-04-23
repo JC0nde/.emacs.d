@@ -33,10 +33,6 @@
 ;;; No splash screen please ... jeez
 (setq inhibit-startup-message t)
 
-;;; Themes folder path and theme file
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-(load-theme 'material t)
-
 ;;; Set Fonts
 (set-face-attribute 'default nil
 		    :family "Source Code Pro" :height 110)
@@ -68,6 +64,12 @@
 			 ("gnu"   . "http://elpa.gnu.org/packages/")
 			 ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
+
+;;; Themes folder path and theme file
+;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+;;(load-theme 'material t)
+(use-package material-theme
+  :ensure t)
 
 ;;; Bootstrap `use-package'
 (unless (package-installed-p 'use-package)
