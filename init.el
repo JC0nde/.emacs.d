@@ -439,6 +439,8 @@ narrowed."
   (setq powerline-default-separator 'slant)
   :config
   (spaceline-emacs-theme)
+  (spaceline-helm-mode)
+  (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
   (spaceline-toggle-minor-modes-off)
   (spaceline-toggle-buffer-size-off)
   (spaceline-toggle-evil-state-on))
