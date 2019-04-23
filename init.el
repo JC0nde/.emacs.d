@@ -1,5 +1,31 @@
-;;; init --- Start Up File
+;;; init.el --- Conde's Emacs configuration file
+
+;; Copyright (c) 2019 Jonathan Conde
+
+;; Author: Jonathan Conde <mail@jonathanconde.com>
+;; URL: https://github.com/JC0nde/.emacs.d/
+
 ;;; Commentary:
+
+;; This is my personal Emacs configuration.  Nothing more, nothing less.
+
+;;; License
+
+;; Permission is granted to copy, distribute and/or modify this document
+;; under the terms of the GNU Free Documentation License, Version 1.3
+;; or any later version published by the Free Software Foundation;
+;; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+
+;; Code in this document is free software: you can redistribute it
+;; and/or modify it under the terms of the GNU General Public
+;; License as published by the Free Software Foundation, either
+;; version 3 of the License, or (at your option) any later version.
+
+;; This code is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;;; Code:
 
 ;;; No splash screen please ... jeez
@@ -223,6 +249,7 @@ Git gutter:
   :ensure t
   :pin org)
 
+(setq org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
 (setenv "BROWSER" "chromium-browser")
 
 (use-package org-bullets
@@ -232,15 +259,21 @@ Git gutter:
 			     (buffer-face-mode))))
 
 (custom-set-variables
- '(org-directory "~/Org")
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-confirm-babel-evaluate nil)
  '(org-default-notes-file (concat org-directory "/notes.org"))
+ '(org-directory "~/Org")
  '(org-export-html-postamble nil)
  '(org-hide-leading-stars t)
+ '(org-src-fontify-natively t)
  '(org-startup-folded (quote overview))
  '(org-startup-indented t)
- '(org-confirm-babel-evaluate nil)
- '(org-src-fontify-natively t)
- )
+ '(package-selected-packages
+   (quote
+    (aggressive-indent counsel-projectile linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 
 (setq org-file-apps
           (append '(
@@ -409,13 +442,29 @@ narrowed."
   :init
   (yas-global-mode 1))
 
+;; babel stuff
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((python . t)
+   (emacs-lisp . t)
+   (shell . t)
+   (C . t)
+   (js . t)
+   (ditaa . t)
+   (dot . t)
+   (org . t)
+   (latex . t )
+   ))
+
 ;;; Projectile
 (use-package projectile
   :ensure t
+  :bind ("C-c p" . projectile-command-map)
   :init
   (setq projectile-require-project-root nil)
   :config
   (projectile-mode 1))
+
 
 ;;; Helm Projectile
 (use-package helm-projectile
@@ -604,6 +653,12 @@ narrowed."
 (require 'server)
 (unless (server-running-p)
   (server-start))
+(use-package aggressive-indent
+:ensure t
+:config
+(global-aggressive-indent-mode 1)
+;;(add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
@@ -623,14 +678,6 @@ narrowed."
 ;;   (add-hook 'html-mode-hook 'skewer-html-mode)
 ;;   (add-hook 'web-mode-hook 'skewer-html-mode))
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -655,4 +702,5 @@ narrowed."
 (set-face-attribute 'fringe nil :background "#212121")
 
 (provide 'init)
+
 ;;; init.el ends here
