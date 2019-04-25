@@ -36,8 +36,6 @@
 ;;; Set Fonts
 (set-face-attribute 'default nil
 		    :family "Source Code Pro" :height 110)
-(set-face-attribute 'variable-pitch nil
-		    :family "Fira Sans" :height 120 :weight 'regular)
 
 ;;; Minimal UI
 (scroll-bar-mode -1)
@@ -45,6 +43,8 @@
 (tooltip-mode    -1)
 (menu-bar-mode   -1)
 (global-linum-mode 1)
+(add-hook 'org-mode-hook (lambda () (linum-mode 0)))
+(global-set-key (kbd "<f5>") 'revert-buffer)
 (global-hl-line-mode t)
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -65,11 +65,9 @@
 			 ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
-;;; Themes folder path and theme file
-;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-;;(load-theme 'material t)
 (use-package material-theme
-  :ensure t)
+  :ensure t
+  :config (load-theme 'material t))
 
 ;;; Bootstrap `use-package'
 (unless (package-installed-p 'use-package)
@@ -83,17 +81,25 @@
   (beacon-mode 1))
 
 (use-package linum-relative
-   :ensure t
-   :config
-   (linum-relative-mode)
-   (setq linum-relative-current-symbol "")
-   )
+  :ensure t
+  :config
+  (linum-relative-mode)
+  (setq linum-relative-current-symbol "")
+  )
 
 ;;; deletes all the whitespace when you hit backspace or delete
 (use-package hungry-delete
   :ensure t
   :config
   (global-hungry-delete-mode))
+
+(setq save-interprogram-paste-before-kill t)
+
+;; expand the marked region in semantic increments (negative prefix to reduce region)
+(use-package expand-region
+  :ensure t
+  :config
+  (global-set-key (kbd "C-=") 'er/expand-region))
 
 ;;; Set path to dependencies
 (setq settings-dir
@@ -220,11 +226,11 @@ Git gutter:
 (use-package smartparens
   :ensure t
   :init
-  ;;(add-hook 'emacs-lisp-mode-hook #'smartparens-mode)
-  ;;(add-hook 'js2-mode-hook #'smartparens-mode)
-  ;;(add-hook 'org-mode-hook #'smartparens-mode)
-  ;;(add-hook 'web-mode-hook #'smartparens-mode)
-  (smartparens-global-mode t))
+  (smartparens-global-mode t)
+  :custom
+  (sp-escape-quotes-after-insert nil)
+  :config
+  (require 'smartparens-config))
 
 ;;; Which Key
 (use-package which-key
@@ -234,9 +240,6 @@ Git gutter:
   (setq which-key-prefix-prefix "+")
   :config
   (which-key-mode 1))
-
-
-(global-set-key (kbd "<f5>") 'revert-buffer)
 
 ;;; Try package
 (use-package try
@@ -253,14 +256,10 @@ Git gutter:
   :ensure t
   :pin org)
 
-(setq org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
-(setenv "BROWSER" "chromium-browser")
-
 (use-package org-bullets
   :ensure t
   :config
-  (add-hook 'org-mode-hook (lambda ()(org-bullets-mode 1)
-			     (buffer-face-mode))))
+  (add-hook 'org-mode-hook (lambda ()(org-bullets-mode 1))))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -277,35 +276,39 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (aggressive-indent counsel-projectile linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
+    (expand-region aggressive-indent counsel-projectile linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 
 (setq org-file-apps
-          (append '(
-                    ("\\.pdf\\'" . "zathura %s")
-                    ("\\.x?html?\\'" . "/usr/bin/chromium-browser %s")
-                    ) org-file-apps ))
+      (append '(
+		("\\.pdf\\'" . "zathura %s")
+		("\\.x?html?\\'" . "/usr/bin/chromium-browser %s")
+		) org-file-apps ))
 
 (global-set-key "\C-ca" 'org-agenda)
-    (setq org-agenda-start-on-weekday nil)
-    (setq org-agenda-custom-commands
-          '(("c" "Simple agenda view"
-             ((agenda "")
-              (alltodo "")))))
+(setq org-agenda-start-on-weekday nil)
+(setq org-agenda-custom-commands
+      '(("c" "Simple agenda view"
+	 ((agenda "")
+	  (alltodo "")))))
 
 (global-set-key (kbd "C-c c") 'org-capture)
 
 ;;; Custom org defuns for capture
-(defadvice org-capture-finalize 
-        (after delete-capture-frame activate)  
-      "Advise capture-finalize to close the frame"  
-      (if (equal "capture" (frame-parameter nil 'name))  
-          (delete-frame)))
+;; (defadvice org-capture-finalize
+;;     (after delete-capture-frame activate)
+;;   "Advise capture-finalize to close the frame"  
+;;   (if (equal "capture" (frame-parameter nil 'name))  
+;;       (delete-frame)))
 
-    (defadvice org-capture-destroy 
-        (after delete-capture-frame activate)  
-      "Advise capture-destroy to close the frame"  
-      (if (equal "capture" (frame-parameter nil 'name))  
-          (delete-frame)))
+;; (defadvice org-capture-destroy 
+;;     (after delete-capture-frame activate)  
+;;   "Advise capture-destroy to close the frame"  
+;;   (if (equal "capture" (frame-parameter nil 'name))  
+;;       (delete-frame)))
+
+(setq org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
+
+(setenv "BROWSER" "chromium-browser")
 
 ;; Reveal.js
 (use-package ox-reveal
@@ -346,7 +349,7 @@ Git gutter:
 	   "fs" '(save-buffer :which-key "save file")
 	   "fS" '(save-some-buffers :which-key "save all")
 	   "xw" '(write-file :which-key "write file name")
-	   "ry" '(helm-show-kill-ring :which-key "kill ring")
+	   "y" '(helm-show-kill-ring :which-key "kill ring")
 	   "cl" '(comment-or-uncomment-region-or-line :which-key "comment line or region")
 	   ;; Projectile
 	   "pf"  '(helm-projectile-find-file :which-key "find files")
@@ -445,7 +448,7 @@ narrowed."
   :ensure t
   :init
   (yas-global-mode 1))
-
+					;(global-set-key "\C-cl" 'org-store-link)
 ;; babel stuff
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -458,16 +461,16 @@ narrowed."
    (dot . t)
    (org . t)
    (latex . t )
+   (sass . t)
    ))
 
 ;;; Projectile
 (use-package projectile
   :ensure t
   :bind ("C-c p" . projectile-command-map)
-  :init
-  (setq projectile-require-project-root nil)
   :config
-  (projectile-mode 1))
+  (projectile-mode 1)
+  (setq projectile-completion-system 'helm))
 
 
 ;;; Helm Projectile
@@ -653,16 +656,12 @@ narrowed."
   (setq web-mode-code-indent-offset 2))
 (add-hook 'web-mode-hook  'my-web-mode-hook)
 
-;;; Emacs server
-(require 'server)
-(unless (server-running-p)
-  (server-start))
 (use-package aggressive-indent
-:ensure t
-:config
-(global-aggressive-indent-mode 1)
-;;(add-to-list 'aggressive-indent-excluded-modes 'html-mode)
-)
+  :ensure t
+  :config
+  (global-aggressive-indent-mode 1)
+  ;;(add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
@@ -687,7 +686,7 @@ narrowed."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#212121" :foreground "#eeffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "nil" :family "Iosevka"))))
+ '(default ((t (:inherit nil :stipple nil :background "#212121" :foreground "#eeffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "nil" :family "Source Code Pro"))))
  '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 1.5))))
  '(font-lock-constant-face ((t (:foreground "#C792EA"))))
  '(font-lock-keyword-face ((t (:foreground "#2BA3FF" :slant italic))))
@@ -704,6 +703,8 @@ narrowed."
  '(mode-line-inactive ((t (:background "#282828" :foreground "#5B6268" :box nil))))
  '(term ((t (:foreground "#fafafa")))))
 (set-face-attribute 'fringe nil :background "#212121")
+(set-face-attribute 'org-hide nil :background "#212121")
+
 
 (provide 'init)
 
