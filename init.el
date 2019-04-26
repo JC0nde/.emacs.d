@@ -30,6 +30,14 @@
 
 ;;; Code:
 
+;;; Package configs
+(require 'package)
+(setq package-enable-at-startup nil)
+(setq package-archives '(("org"   . "http://orgmode.org/elpa/")
+			 ("gnu"   . "http://elpa.gnu.org/packages/")
+			 ("melpa" . "https://melpa.org/packages/")))
+(package-initialize)
+
 ;;; No splash screen please ... jeez
 (setq inhibit-startup-message t)
 
@@ -56,14 +64,6 @@
 (prefer-coding-system 'utf-8)
 (when (display-graphic-p)
   (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
-
-;;; Package configs
-(require 'package)
-(setq package-enable-at-startup nil)
-(setq package-archives '(("org"   . "http://orgmode.org/elpa/")
-			 ("gnu"   . "http://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")))
-(package-initialize)
 
 (use-package material-theme
   :ensure t
@@ -267,8 +267,8 @@ Git gutter:
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-confirm-babel-evaluate nil)
- '(org-default-notes-file (concat org-directory "/notes.org"))
  '(org-directory "~/Org")
+ '(org-default-notes-file (concat org-directory "/refile.org"))
  '(org-export-html-postamble nil)
  '(org-hide-leading-stars t)
  '(org-src-fontify-natively t)
@@ -293,11 +293,53 @@ Git gutter:
 
 (global-set-key (kbd "C-c c") 'org-capture)
 
+(setq org-agenda-files (quote ("~/Org"
+                               "~/Org/clients")))
+
+(setq org-use-fast-todo-selection t)
+(setq org-treat-S-cursor-todo-selection-as-state-change nil)
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+	      (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
+
+(setq org-todo-state-tags-triggers
+      (quote (("CANCELLED" ("CANCELLED" . t))
+              ("WAITING" ("WAITING" . t))
+              ("HOLD" ("WAITING") ("HOLD" . t))
+              (done ("WAITING") ("HOLD"))
+              ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+
+;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+(setq org-capture-templates
+      (quote (("t" "À faire" entry (file "~/Org/refile.org")
+               "* TODO %?\n%U\n%a\n" :prepend t)
+	      ("r" "Rendez-vous" entry (file  "~/Org/gcal.org" )
+	       "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+              ("e" "E-mail" entry (file "~/Org/refile.org")
+               "* NEXT Reponds à %? sur %:subject\n%U\n%a\n" :clock-in t :clock-resume t :prepend t)
+              ("n" "Note" entry (file "~/Org/refile.org")
+               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t :prepend t)
+              ("j" "Journal" entry (file+datetree "~/Org/diary.org")
+               "* %?\n%U\n" :prepend t)
+              ("w" "org-protocol" entry (file "~/Org/refile.org")
+               "* TODO Review %c\n%U\n" :immediate-finish t :prepend t)
+              ("m" "Réunion" entry (file "~/Org/refile.org")
+               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t :prepend t)
+              ("p" "appel téléphonique" entry (file "~/Org/refile.org")
+	       "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t :prepend t)
+	      ("h" "Habitude" entry (file "~/Org/refile.org")
+	       "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n" :prepend t))))
+
+(setq org-outline-path-complete-in-steps nil)
+(setq org-completion-use-ido nil)
+
 ;;; Custom org defuns for capture
 ;; (defadvice org-capture-finalize
 ;;     (after delete-capture-frame activate)
-;;   "Advise capture-finalize to close the frame"  
-;;   (if (equal "capture" (frame-parameter nil 'name))  
+;;   "Advise capture-finalize to close the frame"
+;;   (if (equal "capture" (frame-parameter nil 'name))
 ;;       (delete-frame)))
 
 ;; (defadvice org-capture-destroy 
@@ -705,6 +747,15 @@ narrowed."
 (set-face-attribute 'fringe nil :background "#212121")
 (set-face-attribute 'org-hide nil :background "#212121")
 
+(setq org-todo-keyword-faces
+      (quote (("TODO" :foreground "red" :weight bold)
+              ("NEXT" :foreground "blue" :weight bold)
+              ("DONE" :foreground "forest green" :weight bold)
+              ("WAITING" :foreground "orange" :weight bold)
+              ("HOLD" :foreground "magenta" :weight bold)
+              ("CANCELLED" :foreground "forest green" :weight bold)
+              ("MEETING" :foreground "forest green" :weight bold)
+              ("PHONE" :foreground "forest green" :weight bold))))
 
 (provide 'init)
 
