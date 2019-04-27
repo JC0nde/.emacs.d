@@ -276,7 +276,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (expand-region aggressive-indent counsel-projectile linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
+    (expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 
 (setq org-file-apps
       (append '(
@@ -293,11 +293,12 @@ Git gutter:
 
 (global-set-key (kbd "C-c c") 'org-capture)
 
-(setq org-agenda-files (quote ("~/Org"
-                               "~/Org/clients")))
+;; Adds automatically all .org files in specified directory to the agenda
+(setq org-agenda-files (directory-files-recursively "~/Org" "\.org$"))
 
 (setq org-use-fast-todo-selection t)
 (setq org-treat-S-cursor-todo-selection-as-state-change nil)
+
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
 	      (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
@@ -332,21 +333,21 @@ Git gutter:
 	      ("h" "Habitude" entry (file "~/Org/refile.org")
 	       "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n" :prepend t))))
 
+;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+(setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                 (org-agenda-files :maxlevel . 9))))
+
+;; Use full outline paths for refile targets - we file directly with IDO
+(setq org-refile-use-outline-path t)
 (setq org-outline-path-complete-in-steps nil)
-(setq org-completion-use-ido nil)
+(setq org-refile-allow-creating-parent-nodes (quote confirm))
+;; Do not dim blocked tasks
+(setq org-agenda-dim-blocked-tasks nil)
 
-;;; Custom org defuns for capture
-;; (defadvice org-capture-finalize
-;;     (after delete-capture-frame activate)
-;;   "Advise capture-finalize to close the frame"
-;;   (if (equal "capture" (frame-parameter nil 'name))
-;;       (delete-frame)))
-
-;; (defadvice org-capture-destroy 
-;;     (after delete-capture-frame activate)  
-;;   "Advise capture-destroy to close the frame"  
-;;   (if (equal "capture" (frame-parameter nil 'name))  
-;;       (delete-frame)))
+;; Do not dim blocked tasks
+(setq org-agenda-dim-blocked-tasks nil)
+;; Compact the block agenda view
+(setq org-agenda-compact-blocks t)
 
 (setq org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
 
