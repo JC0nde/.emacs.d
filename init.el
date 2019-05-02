@@ -136,6 +136,17 @@
   :config
   (evil-escape-mode 1))
 
+(use-package evil-org
+  :ensure t
+  :after org
+  :config
+  (add-hook 'org-mode-hook 'evil-org-mode)
+  (add-hook 'evil-org-mode-hook
+            (lambda ()
+              (evil-org-set-key-theme)))
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
 ;;; Helm
 (use-package helm
   :ensure t
@@ -187,6 +198,8 @@
   ;;face for line numbers
   (setq helm-swoop-use-line-number-face t)
   )
+
+(setq epa-file-cache-passphrase-for-symmetric-encryption t)
 
 ;;; Hydra
 (use-package hydra
@@ -267,8 +280,8 @@ Git gutter:
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-confirm-babel-evaluate nil)
- '(org-directory "~/Org")
  '(org-default-notes-file (concat org-directory "/refile.org"))
+ '(org-directory "~/Org")
  '(org-export-html-postamble nil)
  '(org-hide-leading-stars t)
  '(org-src-fontify-natively t)
@@ -276,13 +289,18 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
+    (evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 
-(setq org-file-apps
-      (append '(
-		("\\.pdf\\'" . "zathura %s")
-		("\\.x?html?\\'" . "/usr/bin/chromium-browser %s")
-		) org-file-apps ))
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "chromium")
+
+(add-hook 'org-mode-hook
+	  '(lambda ()
+	     (setq org-file-apps
+		   '((auto-mode . emacs)
+		     ("\\.mm\\'" . default)
+		     ("\\.x?html?\\'" . default)
+		     ("\\.pdf\\'" . "zathura %s")))))
 
 (global-set-key "\C-ca" 'org-agenda)
 (setq org-agenda-start-on-weekday nil)
@@ -350,8 +368,15 @@ Git gutter:
 (setq org-agenda-compact-blocks t)
 
 (setq org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
-
+(setq org-cycle-separator-lines 0)
 (setenv "BROWSER" "chromium-browser")
+
+;; skip multiple timestamps for the same entry
+(setq org-agenda-skip-additional-timestamps-same-entry t)
+;; Overwrite the current window with the agenda
+(setq org-agenda-window-setup 'current-window)
+(setq org-cycle-include-plain-lists t)
+(setq org-alphabetical-lists t)
 
 ;; Reveal.js
 (use-package ox-reveal
@@ -491,7 +516,8 @@ narrowed."
   :ensure t
   :init
   (yas-global-mode 1))
-					;(global-set-key "\C-cl" 'org-store-link)
+
+;;(global-set-key "\C-cl" 'org-store-link)
 ;; babel stuff
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -705,6 +731,137 @@ narrowed."
   (global-aggressive-indent-mode 1)
   ;;(add-to-list 'aggressive-indent-excluded-modes 'html-mode)
   )
+
+;; Mu
+(add-to-list 'load-path "~/mu/mu4e")
+(require 'mu4e)
+(require 'smtpmail)
+
+(setq
+ message-send-mail-function 'smtpmail-send-it
+ starttls-use-gnutls t
+ mu4e-sent-messages-behavior 'sent
+ mu4e-sent-folder "/work/Sent Items"
+ mu4e-drafts-folder "/work/Drafts"
+ user-mail-address "mail@jonathanconde.com"
+ user-full-name "Jonathan Conde"
+ smtpmail-default-smtp-server "mail.infomaniak.com"
+ ;;smtpmail-local-domain "hunter.cuny.edu"
+ smtpmail-smtp-user "mail@jonathanconde.com"
+ smtpmail-smtp-server "mail.infomaniak.com"
+ smtpmail-stream-type 'starttls
+ smtpmail-smtp-service 587)
+
+(setq
+ ;;mu4e-maildir (expand-file-name "~/email")
+ mu4e-maildir "~/email"
+ mu4e-drafts-folder "/work/Drafts"
+ mu4e-sent-folder   "/work/Sent Items"
+ mu4e-trash-folder "/work/Trash"
+ mu4e-refile-folder "/work/Archive"
+ ;;mu4e-get-mail-command "mbsync -a"
+ mu4e-update-interval 120 ;; second
+ mu4e-compose-signature-auto-include nil
+ mu4e-view-show-images t
+ mu4e-view-show-addresses t
+ mu4e-attachment-dir "~/Downloads"
+ mu4e-use-fancy-chars t
+ mu4e-headers-auto-update t
+ message-signature-file "~/.emacs.d/.signature"
+ mu4e-compose-signature-auto-include nil
+ ;;mu4e-html2text-command "w3m -T text/html"
+ )
+
+(setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/.mbsyncrc work"
+      )
+
+
+
+
+;;; Mail directory shortcuts
+      (setq mu4e-maildir-shortcuts
+	    '(
+	      ("/work/INBOX" . ?i)
+	      ("/work/Archive" . ?h)
+	      ("/work/Sent Items" .?s)
+	      ))
+
+;;; Bookmarks
+(setq mu4e-bookmarks
+      `(
+	("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
+	("flag:unread" "Unread messages" ?n)
+        ("date:today..now" "Today's messages" ?t)
+        ("date:7d..now" "Last 7 days" ?w)
+        ("mime:image/*" "Messages with images" ?p)
+        (,(mapconcat 'identity
+                     (mapcar
+                      (lambda (maildir)
+                        (concat "maildir:" (car maildir)))
+                      mu4e-maildir-shortcuts) " OR ")
+         "All inboxes" ?i)))
+
+(require 'org-mu4e)
+(setq org-mu4e-convert-to-html t)
+
+(use-package org-mime
+  :ensure t)
+
+;; this seems to fix the babel file saving thing
+(defun org~mu4e-mime-replace-images (str current-file)
+  "Replace images in html files with cid links."
+  (let (html-images)
+    (cons
+     (replace-regexp-in-string ;; replace images in html
+      "src=\"\\([^\"]+\\)\""
+      (lambda (text)
+        (format
+         "src=\"./:%s\""
+         (let* ((url (and (string-match "src=\"\\([^\"]+\\)\"" text)
+                          (match-string 1 text)))
+                (path (expand-file-name
+                       url (file-name-directory current-file)))
+                (ext (file-name-extension path))
+                (id (replace-regexp-in-string "[\/\\\\]" "_" path)))
+           (add-to-list 'html-images
+                        (org~mu4e-mime-file
+			 (concat "image/" ext) path id))
+           id)))
+      str)
+     html-images)))
+
+;; Alerts
+(use-package mu4e-alert
+  :ensure t)
+
+(mu4e-alert-set-default-style 'libnotify)
+(add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
+(add-hook 'after-init-hook #'mu4e-alert-enable-mode-line-display)
+
+;;need this for hash access
+(require 'subr-x)
+
+;; we seem to need this to fix the org-store-link issue
+(org-link-set-parameters "mu4e" :follow #'org-mu4e-open :store 
+			 #'org-mu4e-store-link)
+
+(use-package helm-mu
+  :ensure t
+  :init
+  (require 'helm-config))
+(define-key mu4e-main-mode-map "s" 'helm-mu)
+(define-key mu4e-headers-mode-map "s" 'helm-mu)
+(define-key mu4e-view-mode-map "s" 'helm-mu)
+
+;; spell check for mu4e
+(add-hook 'mu4e-compose-mode-hook
+	  (defun my-do-compose-stuff ()
+	    "My settings for message composition."
+	    (visual-line-mode)
+	    (org-mu4e-compose-org-mode)
+	    (use-hard-newlines -1)
+	    (flyspell-mode)))
+(setq mu4e-change-filenames-when-moving t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;

@@ -8,5 +8,8 @@ bookmarks
 projectile.cache
 projectile-bookmarks.eld
 recentf
+network-security.data
+.mbsyncrc
+.mbsyncpass.gpg
 *~
 \#*
