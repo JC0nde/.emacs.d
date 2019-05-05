@@ -737,54 +737,90 @@ narrowed."
 (require 'mu4e)
 (require 'smtpmail)
 
-(setq
- message-send-mail-function 'smtpmail-send-it
- starttls-use-gnutls t
- mu4e-sent-messages-behavior 'sent
- mu4e-sent-folder "/work/Sent Items"
- mu4e-drafts-folder "/work/Drafts"
- user-mail-address "mail@jonathanconde.com"
- user-full-name "Jonathan Conde"
- smtpmail-default-smtp-server "mail.infomaniak.com"
- ;;smtpmail-local-domain "hunter.cuny.edu"
- smtpmail-smtp-user "mail@jonathanconde.com"
- smtpmail-smtp-server "mail.infomaniak.com"
- smtpmail-stream-type 'starttls
- smtpmail-smtp-service 587)
-
-(setq
- ;;mu4e-maildir (expand-file-name "~/email")
- mu4e-maildir "~/email"
- mu4e-drafts-folder "/work/Drafts"
- mu4e-sent-folder   "/work/Sent Items"
- mu4e-trash-folder "/work/Trash"
- mu4e-refile-folder "/work/Archive"
- ;;mu4e-get-mail-command "mbsync -a"
- mu4e-update-interval 120 ;; second
- mu4e-compose-signature-auto-include nil
- mu4e-view-show-images t
- mu4e-view-show-addresses t
- mu4e-attachment-dir "~/Downloads"
- mu4e-use-fancy-chars t
- mu4e-headers-auto-update t
- message-signature-file "~/.emacs.d/.signature"
- mu4e-compose-signature-auto-include nil
- ;;mu4e-html2text-command "w3m -T text/html"
- )
-
-(setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/.mbsyncrc work"
+(setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/.mbsyncrc -a"
+      mu4e-maildir (expand-file-name "~/.email")
+      mu4e-update-interval 180
+      mu4e-compose-signature-auto-include nil
+      mu4e-view-show-images t
+      mu4e-view-show-addresses t
+      mu4e-attachment-dir "~/Downloads"
+      mu4e-use-fancy-chars t
+      mu4e-headers-auto-update t
+      message-signature-file "~/.emacs.d/.signature"
+      mu4e-compose-signature-auto-include nil
+      mu4e-view-prefer-html t
+      mu4e-compose-in-new-frame t
+      mu4e-change-filenames-when-moving t
+      message-send-mail-function 'smtpmail-send-it
+      starttls-use-gnutls t
+      smtpmail-stream-type 'starttls
+      mu4e-sent-messages-behavior 'sent
+      ;;mu4e-html2text-command "w3m -T text/html"
       )
 
+(setq mu4e-context-policy 'pick-first)
+(setq mu4e-compose-context-policy 'always-ask)
+(setq mu4e-contexts
+      (list
+       (make-mu4e-context
+	:name "personnel" ;;for acc2-gmail
+	:enter-func (lambda () (mu4e-message "Entering personal context"))
+	:leave-func (lambda () (mu4e-message "Leaving personal context"))
+	:match-func (lambda (msg)
+		      (when msg
+			(mu4e-message-contact-field-matches
+			 msg '(:from :to :cc :bcc) "mail@jonathanconde.com")))
+	:vars '((user-mail-address . "mail@jonathanconde.com")
+		(user-full-name . "Jonathan Conde")
+		(mu4e-sent-folder . "/work/Sent")
+		(mu4e-drafts-folder . "/work/Drafts")
+		(mu4e-trash-folder . "/work/Trash")
+		(mu4e-compose-format-flowed . t)
+		(smtpmail-queue-dir . "~/.email/gmail/queue/cur")
+		(smtpmail-smtp-user . "mail@jonathanconde.com")
+		(smtpmail-starttls-credentials . (("mail.infomaniak.com" 587 nil nil)))
+		(smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
+		(smtpmail-default-smtp-server . "mail.infomaniak.com")
+		(smtpmail-smtp-server . "mail.infomaniak.com")
+		(smtpmail-smtp-service . 587)
+		(smtpmail-debug-info . t)
+		(smtpmail-debug-verbose . t)
+		(mu4e-maildir-shortcuts . ( ("/work/INBOX"    . ?i)
+					    ("/work/Sent"     . ?s)
+					    ("/work/Trash"    . ?t)
+					    ("/work/Archives" . ?a)
+					    ("/work/Drafts"   . ?d)
+					    ))))
 
-
-
-;;; Mail directory shortcuts
-      (setq mu4e-maildir-shortcuts
-	    '(
-	      ("/work/INBOX" . ?i)
-	      ("/work/Archive" . ?h)
-	      ("/work/Sent Items" .?s)
-	      ))
+       (make-mu4e-context
+	:name "gmail" ;;for acc2-gmail
+	:enter-func (lambda () (mu4e-message "Entering gmail context"))
+	:leave-func (lambda () (mu4e-message "Leaving gmail context"))
+	:match-func (lambda (msg)
+		      (when msg
+			(mu4e-message-contact-field-matches
+			 msg '(:from :to :cc :bcc) "jonathan.conde.g@gmail.com")))
+	:vars '((user-mail-address . "jonathan.conde.g@gmail.com")
+		(user-full-name . "Jonathan Conde")
+		(mu4e-sent-folder . "/gmail/[Gmail]/Messages envoy&AOk-s")
+		(mu4e-drafts-folder . "/gmail/[Gmail]/Brouillons")
+		(mu4e-trash-folder . "/gmail/[Gmail]/Corbeille")
+		(mu4e-compose-format-flowed . t)
+		(smtpmail-queue-dir . "~/.email/gmail/queue/cur")
+		(smtpmail-smtp-user . "jonathan.conde.g@gmail.com")
+		(smtpmail-starttls-credentials . (("smtp.gmail.com" 587 nil nil)))
+		(smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
+		(smtpmail-default-smtp-server . "smtp.gmail.com")
+		(smtpmail-smtp-server . "smtp.gmail.com")
+		(smtpmail-smtp-service . 587)
+		(smtpmail-debug-info . t)
+		(smtpmail-debug-verbose . t)
+		(mu4e-maildir-shortcuts . ( ("/gmail/INBOX"                        . ?i)
+					    ("/gmail/[Gmail]/Messages envoy&AOk-s" . ?s)
+					    ("/gmail/[Gmail]/Corbeille"            . ?t)
+					    ("/gmail/[Gmail]/Tous les messages"    . ?a)
+					    ("/gmail/[Gmail]/Brouillons"           . ?d)
+					    ))))))
 
 ;;; Bookmarks
 (setq mu4e-bookmarks
@@ -794,12 +830,7 @@ narrowed."
         ("date:today..now" "Today's messages" ?t)
         ("date:7d..now" "Last 7 days" ?w)
         ("mime:image/*" "Messages with images" ?p)
-        (,(mapconcat 'identity
-                     (mapcar
-                      (lambda (maildir)
-                        (concat "maildir:" (car maildir)))
-                      mu4e-maildir-shortcuts) " OR ")
-         "All inboxes" ?i)))
+        ))
 
 (require 'org-mu4e)
 (setq org-mu4e-convert-to-html t)
