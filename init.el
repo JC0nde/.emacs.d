@@ -418,6 +418,7 @@ Git gutter:
 	   "fS" '(save-some-buffers :which-key "save all")
 	   "xw" '(write-file :which-key "write file name")
 	   "y" '(helm-show-kill-ring :which-key "kill ring")
+	   "e" '(mu4e :which-key "mu4e")
 	   "cl" '(comment-or-uncomment-region-or-line :which-key "comment line or region")
 	   ;; Projectile
 	   "pf"  '(helm-projectile-find-file :which-key "find files")
@@ -740,6 +741,9 @@ narrowed."
 (setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/.mbsyncrc -a"
       mu4e-maildir (expand-file-name "~/.email")
       mu4e-update-interval 180
+      message-kill-buffer-on-exit t
+      mu4e-headers-skip-duplicates t
+      mu4e-confirm-quit nil
       mu4e-compose-signature-auto-include nil
       mu4e-view-show-images t
       mu4e-view-show-addresses t
@@ -754,7 +758,6 @@ narrowed."
       message-send-mail-function 'smtpmail-send-it
       starttls-use-gnutls t
       smtpmail-stream-type 'starttls
-      mu4e-sent-messages-behavior 'sent
       ;;mu4e-html2text-command "w3m -T text/html"
       )
 
@@ -763,7 +766,7 @@ narrowed."
 (setq mu4e-contexts
       (list
        (make-mu4e-context
-	:name "personnel" ;;for acc2-gmail
+	:name "personnel"
 	:enter-func (lambda () (mu4e-message "Entering personal context"))
 	:leave-func (lambda () (mu4e-message "Leaving personal context"))
 	:match-func (lambda (msg)
@@ -775,7 +778,7 @@ narrowed."
 		(mu4e-sent-folder . "/work/Sent")
 		(mu4e-drafts-folder . "/work/Drafts")
 		(mu4e-trash-folder . "/work/Trash")
-		(mu4e-compose-format-flowed . t)
+		(mu4e-refile-folder . "/work/Archives")
 		(smtpmail-queue-dir . "~/.email/gmail/queue/cur")
 		(smtpmail-smtp-user . "mail@jonathanconde.com")
 		(smtpmail-starttls-credentials . (("mail.infomaniak.com" 587 nil nil)))
@@ -783,8 +786,7 @@ narrowed."
 		(smtpmail-default-smtp-server . "mail.infomaniak.com")
 		(smtpmail-smtp-server . "mail.infomaniak.com")
 		(smtpmail-smtp-service . 587)
-		(smtpmail-debug-info . t)
-		(smtpmail-debug-verbose . t)
+		(mu4e-sent-messages-behavior . sent)
 		(mu4e-maildir-shortcuts . ( ("/work/INBOX"    . ?i)
 					    ("/work/Sent"     . ?s)
 					    ("/work/Trash"    . ?t)
@@ -793,7 +795,7 @@ narrowed."
 					    ))))
 
        (make-mu4e-context
-	:name "gmail" ;;for acc2-gmail
+	:name "gmail"
 	:enter-func (lambda () (mu4e-message "Entering gmail context"))
 	:leave-func (lambda () (mu4e-message "Leaving gmail context"))
 	:match-func (lambda (msg)
@@ -805,7 +807,7 @@ narrowed."
 		(mu4e-sent-folder . "/gmail/[Gmail]/Messages envoy&AOk-s")
 		(mu4e-drafts-folder . "/gmail/[Gmail]/Brouillons")
 		(mu4e-trash-folder . "/gmail/[Gmail]/Corbeille")
-		(mu4e-compose-format-flowed . t)
+		(mu4e-refile-folder . "/gmail/[Gmail]/Tous les messages")
 		(smtpmail-queue-dir . "~/.email/gmail/queue/cur")
 		(smtpmail-smtp-user . "jonathan.conde.g@gmail.com")
 		(smtpmail-starttls-credentials . (("smtp.gmail.com" 587 nil nil)))
@@ -813,8 +815,7 @@ narrowed."
 		(smtpmail-default-smtp-server . "smtp.gmail.com")
 		(smtpmail-smtp-server . "smtp.gmail.com")
 		(smtpmail-smtp-service . 587)
-		(smtpmail-debug-info . t)
-		(smtpmail-debug-verbose . t)
+		(mu4e-sent-messages-behavior . delete)
 		(mu4e-maildir-shortcuts . ( ("/gmail/INBOX"                        . ?i)
 					    ("/gmail/[Gmail]/Messages envoy&AOk-s" . ?s)
 					    ("/gmail/[Gmail]/Corbeille"            . ?t)
@@ -822,11 +823,13 @@ narrowed."
 					    ("/gmail/[Gmail]/Brouillons"           . ?d)
 					    ))))))
 
+;; don't save messages to Sent Messages, Gmail/IMAP takes care of this
+
 ;;; Bookmarks
 (setq mu4e-bookmarks
       `(
 	("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
-	("flag:unread" "Unread messages" ?n)
+	("flag:unread" "new messages" ?n)
         ("date:today..now" "Today's messages" ?t)
         ("date:7d..now" "Last 7 days" ?w)
         ("mime:image/*" "Messages with images" ?p)
