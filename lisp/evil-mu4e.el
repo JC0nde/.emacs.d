@@ -70,7 +70,6 @@
   :group 'mu4e
   :type  'symbol)
 
-
 ;;; By default all mu4e modes except for mu4e-compose-mode will start in
 ;;; evil-emacs-state. This section makes all modes start in `evil-mu4e-state'.
 
@@ -88,7 +87,6 @@
   (evil-set-initial-state 'mu4e-compose-mode 'insert))
 
 
-
 ;;; Define bindings
 
 ;; TODO: Inhibit insert-state functions as per Evil Collection.
@@ -238,7 +236,7 @@
   ;; `evil-define-key'.
   (dolist (binding evil-mu4e-mode-map-bindings)
     (evil-define-key*
-      (nth 0 binding) (nth 1 binding) (nth 2 binding) (nth 3 binding)))
+     (nth 0 binding) (nth 1 binding) (nth 2 binding) (nth 3 binding)))
   (evil-define-key 'operator mu4e-view-mode-map
     "u" '(menu-item
           ""
@@ -249,7 +247,6 @@
                       (setq evil-inhibit-operator t)
                       #'mu4e-view-save-url)))))
 
-
 ;;; Update mu4e-main-view
 ;;; To avoid confusion the main-view is updated to show the keys that are in use
 ;;; for evil-mu4e.
@@ -315,16 +312,15 @@ keybindings."
                             evil-mu4e-begin-region-misc evil-mu4e-end-region-misc))
 
 
-
 ;;; Initialize evil-mu4e
 
 (defun evil-mu4e-init ()
   "Initialize evil-mu4e if necessary.
 If mu4e-main-mode is in evil-state-motion-modes, initialization
 is already done earlier."
-    (evil-mu4e-set-state)
-    (evil-mu4e-set-bindings)
-    (add-hook 'mu4e-main-mode-hook 'evil-mu4e-update-main-view))
+  (evil-mu4e-set-state)
+  (evil-mu4e-set-bindings)
+  (add-hook 'mu4e-main-mode-hook 'evil-mu4e-update-main-view))
 
 ;; Evil-mu4e is only needed if mu4e is loaded.
 (with-eval-after-load 'mu4e
