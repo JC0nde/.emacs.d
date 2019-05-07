@@ -289,7 +289,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
+    (evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
 
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "chromium")
@@ -418,7 +418,7 @@ Git gutter:
 	   "fS" '(save-some-buffers :which-key "save all")
 	   "xw" '(write-file :which-key "write file name")
 	   "y" '(helm-show-kill-ring :which-key "kill ring")
-	   "e" '(mu4e :which-key "mu4e")
+	   "m" '(mu4e :which-key "mu4e")
 	   "cl" '(comment-or-uncomment-region-or-line :which-key "comment line or region")
 	   ;; Projectile
 	   "pf"  '(helm-projectile-find-file :which-key "find files")
@@ -741,7 +741,6 @@ narrowed."
 (setq mu4e-get-mail-command "mbsync -c ~/.emacs.d/.mbsyncrc -a"
       mu4e-maildir (expand-file-name "~/.email")
       mu4e-update-interval 180
-      message-kill-buffer-on-exit t
       mu4e-headers-skip-duplicates t
       mu4e-confirm-quit nil
       mu4e-compose-signature-auto-include nil
@@ -749,15 +748,14 @@ narrowed."
       mu4e-view-show-addresses t
       mu4e-attachment-dir "~/Downloads"
       mu4e-use-fancy-chars t
-      mu4e-headers-auto-update t
       message-signature-file "~/.emacs.d/.signature"
       mu4e-compose-signature-auto-include nil
-      mu4e-view-prefer-html t
-      mu4e-compose-in-new-frame t
+      message-kill-buffer-on-exit t
       mu4e-change-filenames-when-moving t
       message-send-mail-function 'smtpmail-send-it
       starttls-use-gnutls t
       smtpmail-stream-type 'starttls
+      mu4e-sent-messages-behavior 'sent
       ;;mu4e-html2text-command "w3m -T text/html"
       )
 
@@ -785,8 +783,8 @@ narrowed."
 		(smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
 		(smtpmail-default-smtp-server . "mail.infomaniak.com")
 		(smtpmail-smtp-server . "mail.infomaniak.com")
-		(smtpmail-smtp-service . 587)
 		(mu4e-sent-messages-behavior . sent)
+		(smtpmail-smtp-service . 587)
 		(mu4e-maildir-shortcuts . ( ("/work/INBOX"    . ?i)
 					    ("/work/Sent"     . ?s)
 					    ("/work/Trash"    . ?t)
@@ -879,9 +877,11 @@ narrowed."
 (org-link-set-parameters "mu4e" :follow #'org-mu4e-open :store 
 			 #'org-mu4e-store-link)
 
+(load-file "~/.emacs.d/lisp/evil-mu4e.el")
+(require 'evil-mu4e)
 (use-package helm-mu
   :ensure t
-  :init
+  :config
   (require 'helm-config))
 (define-key mu4e-main-mode-map "s" 'helm-mu)
 (define-key mu4e-headers-mode-map "s" 'helm-mu)
@@ -892,10 +892,9 @@ narrowed."
 	  (defun my-do-compose-stuff ()
 	    "My settings for message composition."
 	    (visual-line-mode)
-	    (org-mu4e-compose-org-mode)
+	    ;;(org-mu4e-compose-org-mode)
 	    (use-hard-newlines -1)
 	    (flyspell-mode)))
-(setq mu4e-change-filenames-when-moving t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
