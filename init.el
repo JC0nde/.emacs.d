@@ -55,6 +55,7 @@
 (global-set-key (kbd "<f5>") 'revert-buffer)
 (global-hl-line-mode t)
 (fset 'yes-or-no-p 'y-or-n-p)
+(setq-default indent-tabs-mode nil)
 
 ;;; UTF-8 everywhere, forever
 (setq locale-coding-system 'utf-8)
@@ -279,6 +280,7 @@ Git gutter:
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(css-indent-offset 2)
  '(org-confirm-babel-evaluate nil)
  '(org-default-notes-file (concat org-directory "/refile.org"))
  '(org-directory "~/Org")
@@ -301,6 +303,7 @@ Git gutter:
 		     ("\\.mm\\'" . default)
 		     ("\\.x?html?\\'" . default)
 		     ("\\.pdf\\'" . "zathura %s")))))
+
 
 (global-set-key "\C-ca" 'org-agenda)
 (setq org-agenda-start-on-weekday nil)
@@ -879,22 +882,24 @@ narrowed."
 
 (load-file "~/.emacs.d/lisp/evil-mu4e.el")
 (require 'evil-mu4e)
+
 (use-package helm-mu
   :ensure t
   :config
   (require 'helm-config))
+
 (define-key mu4e-main-mode-map "s" 'helm-mu)
 (define-key mu4e-headers-mode-map "s" 'helm-mu)
 (define-key mu4e-view-mode-map "s" 'helm-mu)
 
 ;; spell check for mu4e
 (add-hook 'mu4e-compose-mode-hook
-	  (defun my-do-compose-stuff ()
-	    "My settings for message composition."
-	    (visual-line-mode)
-	    ;;(org-mu4e-compose-org-mode)
-	    (use-hard-newlines -1)
-	    (flyspell-mode)))
+          (defun my-do-compose-stuff ()
+            "My settings for message composition."
+            (visual-line-mode)
+            ;;(org-mu4e-compose-org-mode)
+            (use-hard-newlines -1)
+            (flyspell-mode)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
