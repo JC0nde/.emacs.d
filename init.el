@@ -291,7 +291,111 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package))))
+    (apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+ '(safe-local-variable-values
+   (quote
+    ((eval progn
+           (set
+            (make-local-variable
+             (quote org-time-clocksum-format))
+            (quote
+             (:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)))
+           (setq org-latex-tables-centered nil org-latex-default-table-environment "longtable")
+           (local-set-key
+            (kbd "<f6>")
+            (lambda nil
+              (interactive)
+              (beginning-of-buffer)
+              (re-search-forward "Invoice number: \\([0-9]+\\)")
+              (let
+                  ((n
+                    (string-to-number
+                     (match-string 1))))
+                (kill-region
+                 (match-beginning 1)
+                 (match-end 1))
+                (insert
+                 (format "%d"
+                         (1+ n))))
+              (beginning-of-buffer)
+              (re-search-forward "Invoice date: *")
+              (kill-region
+               (point)
+               (save-excursion
+                 (end-of-line)
+                 (point)))
+              (org-insert-time-stamp
+               (current-time)
+               nil t)
+              (beginning-of-buffer)
+              (search-forward "#+BEGIN: clocktable")
+              (unwind-protect
+                  (progn
+                    (defadvice org-table-goto-column
+                        (before always-make-new-columns
+                                (n &optional on-delim force)
+                                activate)
+                      "always adds new columns when we move to them"
+                      (setq force t))
+                    (org-clocktable-shift
+                     (quote right)
+                     1))
+                (ad-deactivate
+                 (quote org-table-goto-column)))
+              (beginning-of-buffer)
+              (search-forward "| totaltarget")
+              (org-table-recalculate t))))
+     (eval progn
+           (set
+            (make-local-variable
+             (quote org-time-clocksum-format))
+            (quote
+             (:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)))
+           (setq org-latex-tables-centered nil org-latex-default-table-environment "longtable")
+           (local-set-key
+            (kbd "<f6>")
+            (lambda nil
+              (interactive)
+              (beginning-of-buffer)
+              (re-search-forward "Facture numéro: \\([0-9]+\\)")
+              (let
+                  ((n
+                    (string-to-number
+                     (match-string 1))))
+                (kill-region
+                 (match-beginning 1)
+                 (match-end 1))
+                (insert
+                 (format "%d"
+                         (1+ n))))
+              (beginning-of-buffer)
+              (re-search-forward "Date de facturation: *")
+              (kill-region
+               (point)
+               (save-excursion
+                 (end-of-line)
+                 (point)))
+              (org-insert-time-stamp
+               (current-time)
+               nil t)
+              (beginning-of-buffer)
+              (search-forward "#+BEGIN: clocktable")
+              (unwind-protect
+                  (progn
+                    (defadvice org-table-goto-column
+                        (before always-make-new-columns
+                                (n &optional on-delim force)
+                                activate)
+                      "always adds new columns when we move to them"
+                      (setq force t))
+                    (org-clocktable-shift
+                     (quote right)
+                     1))
+                (ad-deactivate
+                 (quote org-table-goto-column)))
+              (beginning-of-buffer)
+              (search-forward "| totaltarget")
+              (org-table-recalculate t))))))))
 
 (setq browse-url-browser-function 'browse-url-generic
       browse-url-generic-program "chromium")
@@ -900,6 +1004,10 @@ narrowed."
             ;;(org-mu4e-compose-org-mode)
             (use-hard-newlines -1)
             (flyspell-mode)))
+
+(use-package apache-mode
+  :ensure t
+  :mode ("\\.htaccess\\'" "httpd\\.conf\\'" "srm\\.conf\\'" "access\\.conf\\'"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
