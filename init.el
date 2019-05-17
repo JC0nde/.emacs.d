@@ -38,6 +38,11 @@
 			 ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
+;; Uprgrade package-list before install
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
 ;;; No splash screen please ... jeez
 (setq inhibit-startup-message t)
 
@@ -74,6 +79,24 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+;; up-to-date packages
+(use-package auto-package-update
+  :config
+  (setq auto-package-update-delete-old-versions t)
+  (setq auto-package-update-hide-results t)
+  (auto-package-update-maybe))
+
+;; key-chords to use-pacakge
+(use-package use-package-chords
+  :ensure t
+  :config (key-chord-mode 1))
+
+;; jump to char word or line
+(use-package ace-jump-mode
+  :ensure t
+  :chords (("jj" . ace-jump-char-mode)
+           ("jk" . ace-jump-word-mode)))
 
 ;;; flashes the cursor's line when you scroll
 (use-package beacon
@@ -291,7 +314,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
