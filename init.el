@@ -38,13 +38,14 @@
 			 ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
-;; Uprgrade package-list before install
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
 ;;; No splash screen please ... jeez
-(setq inhibit-startup-message t)
+(setq inhibit-startup-buffer-menu t)
+(setq inhibit-startup-screen t)
+(setq initial-buffer-choice t)
+(setq initial-scratch-message nil)
+
+;; Disable certain byte compiler warnings
+(setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
 
 ;;; Set Fonts
 (set-face-attribute 'default nil
@@ -56,11 +57,17 @@
 (tooltip-mode    -1)
 (menu-bar-mode   -1)
 (global-linum-mode 1)
+(blink-cursor-mode -1)
 (add-hook 'org-mode-hook (lambda () (linum-mode 0)))
 (global-set-key (kbd "<f5>") 'revert-buffer)
 (global-hl-line-mode t)
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq-default indent-tabs-mode nil)
+
+;; Nicer scrolling
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
 
 ;;; UTF-8 everywhere, forever
 (setq locale-coding-system 'utf-8)
@@ -70,6 +77,13 @@
 (prefer-coding-system 'utf-8)
 (when (display-graphic-p)
   (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
+
+;; Don't quit Emacs on C-x C-c
+(when (daemonp)
+  (global-set-key (kbd "C-x C-c") 'kill-buffer-and-window))
+
+;; Newline at end of file
+(setq require-final-newline t)
 
 (use-package material-theme
   :ensure t
@@ -82,6 +96,7 @@
 
 ;; up-to-date packages
 (use-package auto-package-update
+  :ensure t
   :config
   (setq auto-package-update-delete-old-versions t)
   (setq auto-package-update-hide-results t)
@@ -91,6 +106,12 @@
 (use-package use-package-chords
   :ensure t
   :config (key-chord-mode 1))
+
+;; Remeber last position
+(use-package saveplace
+  :ensure t
+  :unless noninteractive
+  :config (save-place-mode))
 
 ;; jump to char word or line
 (use-package ace-jump-mode
@@ -171,6 +192,36 @@
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 
+;; Tramp
+(use-package tramp
+  :ensure t
+  :defer t
+  :config
+  (setq tramp-default-method "ssh")
+
+  ;; Only for debugging slow tramp connections
+  ;;(setq tramp-verbose 7)
+
+  ;; Skip version control for tramp files
+  (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+
+  ;; Use ControlPath from .ssh/config
+  (setq tramp-ssh-controlmaster-options "")
+
+  ;; Backup tramp files like local files and don't litter the remote
+  ;; file system with my emacs backup files
+  (setq tramp-backup-directory-alist backup-directory-alist)
+
+  ;; See https://www.gnu.org/software/tramp/#Ad_002dhoc-multi_002dhops
+  ;; For all hosts, except my local one, first connect via ssh, and then apply sudo -u root:
+  (dolist (tramp-proxies '((nil "\\`root\\'" "/ssh:%h:")
+                           ((regexp-quote (system-name)) nil nil)
+                           ("localhost" nil nil)))
+    (add-to-list 'tramp-default-proxies-alist tramp-proxies)))
+
 ;;; Helm
 (use-package helm
   :ensure t
@@ -188,18 +239,23 @@
 	helm-move-to-line-cycle-in-source t
 	helm-echo-input-in-header-line t
 	helm-autoresize-max-height 0
-	helm-autoresize-min-height 20)
+	helm-autoresize-min-height 30)
+  (global-set-key (kbd "C-x b") #'helm-mini)
   (global-set-key (kbd "M-x") #'helm-M-x)
   (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
   (global-set-key (kbd "C-x C-f") #'helm-find-files)
   :config
+  ;; keep follow-mode in between helm sessions once activated
+  (setq helm-follow-mode-persistent t)
+  ;; Don't show details in helm-mini for tramp buffers
+  (setq helm-buffer-skip-remote-checking t)
   (helm-mode 1))
 
 ;; Helm-swoop
 (use-package helm-swoop
   :ensure t
   :config
-  (global-set-key (kbd "C-s") 'helm-swoop-without-pre-input)
+  (global-set-key (kbd "M-s") 'helm-swoop-without-pre-input)
 
   ;; Move up and down like isearch
   (define-key helm-swoop-map (kbd "C-k") 'helm-previous-line)
@@ -269,6 +325,30 @@ Git gutter:
   :config
   (require 'smartparens-config))
 
+(use-package no-littering
+  :ensure t
+  :demand t
+  :config
+  ;; /etc is version controlled and I want to store mc-lists in git
+  (setq mc/list-file (no-littering-expand-etc-file-name "mc-list.el"))
+  ;; Put the auto-save files in the var directory to the other data files
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+
+(use-package recentf
+  :ensure t
+  :config
+  (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
+  (add-to-list 'recentf-exclude no-littering-var-directory)
+
+  (setq recentf-max-saved-items 500
+        recentf-max-menu-items 15
+        ;; disable recentf-cleanup on Emacs start, because it can cause
+        ;; problems with remote files
+        recentf-auto-cleanup 'never)
+
+  (recentf-mode))
+
 ;;; Which Key
 (use-package which-key
   :ensure t
@@ -314,7 +394,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (logview ibuffer-projectile ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
@@ -704,14 +784,43 @@ narrowed."
 ;;; Company
 (use-package company
   :ensure t
+  :bind (:map company-active-map
+              ([return] . nil)
+              ("RET" . nil)
+              ("TAB" . company-select-next)
+              ([tab] . company-select-next)
+              ("S-TAB" . company-select-previous)
+              ([backtab] . company-select-previous)
+              ("C-j" . company-complete-selection))
   :config
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 1)
+  ;; company-tng (tab and go) allows you to use TAB to both select a
+  ;; completion candidate from the list and to insert it into the
+  ;; buffer.
+  ;;
+  ;; It cycles the candidates like `yank-pop' or `dabbrev-expand' or
+  ;; Vim: Pressing TAB selects the first item in the completion menu and
+  ;; inserts it in the buffer. Pressing TAB again selects the second
+  ;; item and replaces the inserted item with the second one. This can
+  ;; continue as long as the user wishes to cycle through the menu.
   (setq company-selection-wrap-around t)
-  (company-tng-configure-default)
   (add-to-list 'company-backends 'company-tern)
-					; (add-to-list 'company-backends 'ac-js2-company)
-  (global-company-mode))
+  (require 'company-tng)
+  (setq company-frontends '(company-tng-frontend
+                            company-pseudo-tooltip-frontend
+                            company-echo-metadata-frontend)))
+
+(setq company-idle-delay 0.1)
+(setq company-tooltip-limit 10)
+(setq company-minimum-prefix-length 1)
+;; Aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+;;(setq company-dabbrev-downcase nil)
+;; invert the navigation direction if the the completion popup-isearch-match
+;; is displayed on top (happens near the bottom of windows)
+;;(setq company-tooltip-flip-when-above t)
+;; start autocompletion only after typing
+(setq company-begin-commands '(self-insert-command))
+(global-company-mode 1)
 
 (use-package magit
   :ensure t
@@ -751,6 +860,16 @@ narrowed."
 	  (lambda ()
 	    (ibuffer-auto-mode 1)
 	    (ibuffer-switch-to-saved-filter-groups "default")))
+
+(use-package ibuffer-projectile
+  :ensure t
+  :hook (ibuffer . ibuffer-projectile-init)
+  :commands ibuffer-projectile-init
+  :config
+  (defun ibuffer-projectile-init()
+    (ibuffer-projectile-set-filter-groups)
+    (unless (eq ibuffer-sorting-mode 'alphabetic)
+      (ibuffer-do-sort-by-alphabetic))))
 
 ;; don't show these
 					;(add-to-list 'ibuffer-never-show-predicates "zowie")
@@ -1031,6 +1150,16 @@ narrowed."
 (use-package apache-mode
   :ensure t
   :mode ("\\.htaccess\\'" "httpd\\.conf\\'" "srm\\.conf\\'" "access\\.conf\\'"))
+
+;; Logview provides syntax highlighting, filtering and other features for various log files
+(use-package logview
+  :ensure t
+  :defer t
+  :config
+  (setq logview-additional-submodes
+        '(("Logback4me"
+           (format . "TIMESTAMP [THREAD] {} LEVEL NAME -")
+           (levels . "SLF4J")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;

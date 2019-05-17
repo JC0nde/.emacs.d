@@ -4,11 +4,14 @@
 /transient
 /themes
 /org
+/var
 bookmarks
+places
 projectile.cache
 projectile-bookmarks.eld
 recentf
 network-security.data
+.last-package-update-day
 .mbsyncrc
 .mbsyncpass.gpg
 *~
