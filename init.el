@@ -890,16 +890,24 @@ narrowed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language Supports ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+(use-package json-mode
+  :ensure t
+  :mode "\\.json\\'")
 
 ;;; JavaScript
 (use-package js2-mode
   :ensure t
   :ensure ac-js2
+  :mode ("\\.js\\'" "\\.pac\\'" "\\.node\\'")
   :init
-  (progn
-    (add-hook 'js-mode-hook 'js2-minor-mode)
-    (add-hook 'js2-mode-hook 'ac-js2-mode)
-    ))
+  (add-hook 'js2-mode-hook (lambda ()
+                             (setq mode-name "JS2")))
+  :config
+  ;; Don't warn about trailing commas
+  ;;(setq js2-strict-trailing-comma-warning nil)
+
+  (setq js2-basic-offset 2)  ; set javascript indent to 2 spaces
+  )
 
 (use-package js2-refactor
   :ensure t
@@ -912,19 +920,17 @@ narrowed."
 (setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
 (setq exec-path (append exec-path '("/usr/local/bin")))
 
-(use-package company-tern
-  :ensure t
-  :init
-  (add-to-list 'company-backends 'company-tern))
-
 (use-package tern
   :ensure tern
-  :ensure tern-auto-complete
+  :commands tern-mode
+  :init (add-hook 'js-mode-hook 'tern-mode)
   :config
-  (progn
-    (add-hook 'js2-mode-hook (lambda () (tern-mode t)))
-    (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-    ))
+  (use-package company-tern
+    :ensure t
+    :config
+    (setq company-tern-property-marker "")
+    (add-to-list 'company-backends 'company-tern)))
+
 
 ;; turn on flychecking globally
 (add-hook 'after-init-hook #'global-flycheck-mode)
