@@ -153,20 +153,18 @@
 ;;; Set up load path
 (add-to-list 'load-path settings-dir)
 
-;;; Write backup files to own directory
-(setq backup-directory-alist
-      `(("." . ,(expand-file-name
-		 (concat user-emacs-directory "backups")))))
-
-;;; Write all autosave files in the tmp dir
+;; Backup
+(setq create-lockfiles nil)
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
-
-;;; Don't write lock-files, I'm the only one here
-(setq create-lockfiles nil)
-
-;;; Make backups of files, even when they're in version control
 (setq vc-make-backup-files t)
+(setq make-backup-files t
+      backup-by-copying t
+      version-control t
+      delete-old-versions t
+      kept-old-versions 6 
+      kept-new-versions 9
+      )
 
 ;;; Vim mode
 (use-package evil
@@ -318,12 +316,19 @@ Git gutter:
 ;;; Smartparens
 (use-package smartparens
   :ensure t
-  :init
-  (smartparens-global-mode t)
+  :hook ((
+          emacs-lisp-mode lisp-mode hy-mode go-mode cc-mode
+          python-mode typescript-mode javascript-mode java-mode
+          ) . smartparens-strict-mode)
   :custom
   (sp-escape-quotes-after-insert nil)
   :config
-  (require 'smartparens-config))
+  (show-smartparens-global-mode +1)
+  (setq blink-matching-paren nil)
+  (setq sp-base-key-bindings 'paredit)
+  (setq sp-autoskip-closing-pair 'always)
+  (require 'smartparens-config)
+  (smartparens-global-mode t))
 
 (use-package no-littering
   :ensure t
@@ -365,13 +370,32 @@ Git gutter:
 ;;; Undo Tree
 (use-package undo-tree
   :ensure t
-  :init
+  :config
+  (setq undo-tree-visualizer-timestamps t)
+  (setq undo-tree-history-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq undo-tree-auto-save-history t)
+  ;; Keep region when undoing in region
+  (defadvice undo-tree-undo (around keep-region activate)
+    (if (use-region-p)
+        (let ((m (set-marker (make-marker) (mark)))
+              (p (set-marker (make-marker) (point))))
+          ad-do-it
+          (goto-char p)
+          (set-mark m)
+          (set-marker p nil)
+          (set-marker m nil))
+      ad-do-it))
+
   (global-undo-tree-mode))
 
 ;;; OrgMode setup
 (use-package org
   :ensure t
-  :pin org)
+  :pin org
+  :config
+  ;; Some characters to choose from: …, ⤵, ▼, ↴, ⬎, ⤷, and ⋱
+  (setq org-ellipsis "⤵"))
 
 (use-package org-bullets
   :ensure t
@@ -394,7 +418,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (logview ibuffer-projectile ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (gnus-dired org-mu4e logview ibuffer-projectile ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
@@ -725,10 +749,13 @@ narrowed."
 ;; Yasnippet
 (use-package yasnippet
   :ensure t
-  :init
+  :defer 10
+  :mode (("\\.yasnippet\\'" . snippet-mode))
+  :bind (:map yas-minor-mode-map
+              ("\C-c TAB" . yas-expand))
+  :config
   (yas-global-mode 1))
 
-;;(global-set-key "\C-cl" 'org-store-link)
 ;; babel stuff
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -882,10 +909,14 @@ narrowed."
 ;;; Emmet
 (use-package emmet-mode
   :ensure t
+  :hook (web-mode sgml-mode css-mode)
   :config
-  (add-hook 'sgml-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
-  (add-hook 'web-mode-hook 'emmet-mode) ;; Auto-start on any markup modes
-  (add-hook 'css-mode-hook  'emmet-mode)) ;; enable Emmet's css abbreviation.
+  (setq emmet-move-cursor-between-quotes t)
+  (setq emmet-move-cursor-after-expanding t))
+
+(use-package rainbow-mode
+  :ensure t
+  :hook (css-mode scss-mode sass-mode emacs-lisp-mode hy-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language Supports ;;;
@@ -931,7 +962,6 @@ narrowed."
     (setq company-tern-property-marker "")
     (add-to-list 'company-backends 'company-tern)))
 
-
 ;; turn on flychecking globally
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
@@ -958,28 +988,21 @@ narrowed."
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
   (setq web-mode-engines-alist
-	'(("php"    . "\\.phtml\\'")
-	  ("blade"  . "\\.blade\\.")
-	  ("twig"   . "\\.twig\\.")))
+        '(("php"    . "\\.phtml\\'")
+          ("blade"  . "\\.blade\\.")
+          ("twig"   . "\\.twig\\.")))
   (setq web-mode-ac-sources-alist
-	'(("css" . (ac-source-css-property))
-	  ("vue" . (ac-source-words-in-buffer ac-source-abbrev))
-	  ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
+        '(("css" . (ac-source-css-property))
+          ("vue" . (ac-source-words-in-buffer ac-source-abbrev))
+          ("html" . (ac-source-words-in-buffer ac-source-abbrev))))
 
   (setq web-mode-enable-auto-closing t)
-  (setq web-mode-enable-auto-quoting t)) ; this fixes the quote problem I mentioned
-
-;; use eslint with web-mode for jsx files
-(flycheck-add-mode 'javascript-eslint 'web-mode)
-
-;; adjust indents for web-mode to 2 spaces
-(defun my-web-mode-hook ()
-  "Hooks for Web mode.  Adjust indent."
-  ;;; http://web-mode.org/
+  (setq web-mode-enable-auto-quoting t) ; this fixes the quote problem I mentioned
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
-  (setq web-mode-code-indent-offset 2))
-(add-hook 'web-mode-hook  'my-web-mode-hook)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-script-padding 0)
+  (setq web-mode-style-padding 0))
 
 (use-package aggressive-indent
   :ensure t
@@ -1013,7 +1036,7 @@ narrowed."
       mu4e-sent-messages-behavior 'sent
       ;;mu4e-html2text-command "w3m -T text/html"
       )
-
+(setq mail-user-agent 'mu4e-user-agent)
 (setq mu4e-context-policy 'pick-first)
 (setq mu4e-compose-context-policy 'always-ask)
 (setq mu4e-contexts
@@ -1089,10 +1112,20 @@ narrowed."
         ))
 
 (require 'org-mu4e)
-(setq org-mu4e-convert-to-html t)
+(setq-default org-mu4e-convert-to-html t)
+(defalias 'org-mail 'org-mu4e-compose-org-mode)
+(setq-default org-export-with-toc nil)
+(setq-default org-mu4e-link-query-in-headers-mode nil)
 
 (use-package org-mime
-  :ensure t)
+  :ensure t
+  :commands (org-mime-htmlize org-mime-org-buffer-htmlize org-mime-org-subtree-htmlize)
+  :bind (:map message-mode-map ("C-c M-o" . org-mime-htmlize)
+              :map org-mode-map ("C-c M-o" . org-mime-org-subtree-htmlize))
+  :config
+  (setq org-mime-export-options '(:section-numbers nil
+                                                   :with-author nil
+                                                   :with-toc nil)))
 
 ;; this seems to fix the babel file saving thing
 (defun org~mu4e-mime-replace-images (str current-file)
