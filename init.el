@@ -345,11 +345,10 @@ Git gutter:
   :config
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
   (add-to-list 'recentf-exclude no-littering-var-directory)
+  (add-to-list 'recentf-exclude no-littering-etc-directory)
 
   (setq recentf-max-saved-items 500
         recentf-max-menu-items 15
-        ;; disable recentf-cleanup on Emacs start, because it can cause
-        ;; problems with remote files
         recentf-auto-cleanup 'never)
 
   (recentf-mode))
