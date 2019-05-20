@@ -34,8 +34,8 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(("org"   . "http://orgmode.org/elpa/")
-			 ("gnu"   . "http://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")))
+                         ("gnu"   . "http://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
 
 ;;; No splash screen please ... jeez
@@ -49,7 +49,7 @@
 
 ;;; Set Fonts
 (set-face-attribute 'default nil
-		    :family "Source Code Pro" :height 110)
+                    :family "Source Code Pro" :height 110)
 
 ;;; Minimal UI
 (scroll-bar-mode -1)
@@ -225,19 +225,19 @@
   :ensure t
   :init
   (setq helm-M-x-fuzzy-match t
-	helm-mode-fuzzy-match t
-	helm-buffers-fuzzy-matching t
-	helm-recentf-fuzzy-match t
-	helm-locate-fuzzy-match t
-	helm-semantic-fuzzy-match t
-	helm-imenu-fuzzy-match t
-	helm-completion-in-region-fuzzy-match t
-	helm-candidate-number-list 150
-	helm-split-window-in-side-p t
-	helm-move-to-line-cycle-in-source t
-	helm-echo-input-in-header-line t
-	helm-autoresize-max-height 0
-	helm-autoresize-min-height 30)
+        helm-mode-fuzzy-match t
+        helm-buffers-fuzzy-matching t
+        helm-recentf-fuzzy-match t
+        helm-locate-fuzzy-match t
+        helm-semantic-fuzzy-match t
+        helm-imenu-fuzzy-match t
+        helm-completion-in-region-fuzzy-match t
+        helm-candidate-number-list 150
+        helm-split-window-in-side-p t
+        helm-move-to-line-cycle-in-source t
+        helm-echo-input-in-header-line t
+        helm-autoresize-max-height 0
+        helm-autoresize-min-height 30)
   (global-set-key (kbd "C-x b") #'helm-mini)
   (global-set-key (kbd "M-x") #'helm-M-x)
   (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
@@ -277,18 +277,33 @@
   (setq helm-swoop-use-line-number-face t)
   )
 
-(setq epa-file-cache-passphrase-for-symmetric-encryption t)
+(use-package epa
+  :ensure t
+  :config
+  (require 'epa-file)
+  (epa-file-enable)
+  ;; Always replace encrypted text with plain text version
+  (setq epa-file-cache-passphrase-for-symmetric-encryption t)
+  (setq epa-replace-original-text t))
 
-;;; Hydra
+(use-package epg
+  :ensure t
+  :config
+  ;; Let Emacs query the passphrase through the minibuffer
+  (setq epg-pinentry-mode 'loopback))
+
+
+;;; Hydras
 (use-package hydra
   :ensure hydra
   :init
   (global-set-key
    (kbd "C-x t")
    (defhydra hydra-git-gutter (:body-pre (git-gutter+-mode 1)
-					 :hint nil)
+                                         :hint nil)
      "
 Git gutter:
+^^^^^^^^-----------------------------------------------------------------
   _j_: next hunk        _s_tage hunk     _q_uit
   _k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
   ^ ^                   _p_opup hunk
@@ -298,19 +313,19 @@ Git gutter:
      ("j" git-gutter+-next-hunk)
      ("k" git-gutter+-previous-hunk)
      ("h" (progn (goto-char (point-min))
-		 (git-gutter+-next-hunk 1)))
+                 (git-gutter+-next-hunk 1)))
      ("l" (progn (goto-char (point-min))
-		 (git-gutter+-previous-hunk 1)))
+                 (git-gutter+-previous-hunk 1)))
      ("s" git-gutter+-stage-hunk)
      ("r" git-gutter+-revert-hunk)
      ("p" git-gutter+-popup-hunk)
      ("R" git-gutter+-set-start-revision)
      ("q" nil :color blue)
      ("Q" (progn (git-gutter+-mode -1)
-		 ;; git-gutter-fringe doesn't seem to
-		 ;; clear the markup right away
-		 (sit-for 0.1)
-		 (git-gutter+-clear))
+                 ;; git-gutter-fringe doesn't seem to
+                 ;; clear the markup right away
+                 (sit-for 0.1)
+                 (git-gutter+-clear))
       :color blue))))
 
 ;;; Smartparens
@@ -417,7 +432,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (gnus-dired org-mu4e logview ibuffer-projectile ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (vlf logview ibuffer-projectile ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
@@ -527,20 +542,20 @@ Git gutter:
       browse-url-generic-program "chromium")
 
 (add-hook 'org-mode-hook
-	  '(lambda ()
-	     (setq org-file-apps
-		   '((auto-mode . emacs)
-		     ("\\.mm\\'" . default)
-		     ("\\.x?html?\\'" . default)
-		     ("\\.pdf\\'" . "zathura %s")))))
+          '(lambda ()
+             (setq org-file-apps
+                   '((auto-mode . emacs)
+                     ("\\.mm\\'" . default)
+                     ("\\.x?html?\\'" . default)
+                     ("\\.pdf\\'" . "zathura %s")))))
 
 
 (global-set-key "\C-ca" 'org-agenda)
 (setq org-agenda-start-on-weekday nil)
 (setq org-agenda-custom-commands
       '(("c" "Simple agenda view"
-	 ((agenda "")
-	  (alltodo "")))))
+         ((agenda "")
+          (alltodo "")))))
 
 (global-set-key (kbd "C-c c") 'org-capture)
 
@@ -552,7 +567,7 @@ Git gutter:
 
 (setq org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-	      (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
 
 (setq org-todo-state-tags-triggers
       (quote (("CANCELLED" ("CANCELLED" . t))
@@ -567,8 +582,8 @@ Git gutter:
 (setq org-capture-templates
       (quote (("t" "À faire" entry (file "~/Org/refile.org")
                "* TODO %?\n%U\n%a\n" :prepend t)
-	      ("r" "Rendez-vous" entry (file  "~/Org/gcal.org" )
-	       "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
+              ("r" "Rendez-vous" entry (file  "~/Org/gcal.org" )
+               "* %?\n\n%^T\n\n:PROPERTIES:\n\n:END:\n\n")
               ("e" "E-mail" entry (file "~/Org/refile.org")
                "* NEXT Reponds à %? sur %:subject\n%U\n%a\n" :clock-in t :clock-resume t :prepend t)
               ("n" "Note" entry (file "~/Org/refile.org")
@@ -580,9 +595,9 @@ Git gutter:
               ("m" "Réunion" entry (file "~/Org/refile.org")
                "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t :prepend t)
               ("p" "appel téléphonique" entry (file "~/Org/refile.org")
-	       "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t :prepend t)
-	      ("h" "Habitude" entry (file "~/Org/refile.org")
-	       "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n" :prepend t))))
+               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t :prepend t)
+              ("h" "Habitude" entry (file "~/Org/refile.org")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n" :prepend t))))
 
 ;; Targets include this file and any file contributing to the agenda - up to 9 levels deep
 (setq org-refile-targets (quote ((nil :maxlevel . 9)
@@ -626,7 +641,7 @@ Git gutter:
   (interactive)
   (let (beg end)
     (if (region-active-p)
-	(setq beg (region-beginning) end (region-end))
+        (setq beg (region-beginning) end (region-end))
       (setq beg (line-beginning-position) end (line-end-position)))
     (comment-or-uncomment-region beg end)
     (next-logical-line)))
@@ -635,55 +650,55 @@ Git gutter:
 (use-package general
   :ensure t
   :config (general-define-key
-	   :states '(normal visual insert emacs)
-	   :prefix "SPC"
-	   :non-normal-prefix "M-SPC"
-	   ;; "/"   '(counsel-rg :which-key "ripgrep") ; You'll need counsel package for this
-	   "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
-	   "SPC" '(helm-M-x :which-key "M-x")
-	   "<f1>" '(helm-apropos :which-key "à propos")
-	   "bb" '(helm-mini :which-key "helm mini")
-	   "fed" '(myinit :which-key "init file")
-	   "fer" '(myinitR :which-key "init file")
-	   "ff" '(helm-find-files :which-key "find files")
-	   "fr" '(helm-recentf :which-key "recent files")
-	   "fs" '(save-buffer :which-key "save file")
-	   "fS" '(save-some-buffers :which-key "save all")
-	   "xw" '(write-file :which-key "write file name")
-	   "y" '(helm-show-kill-ring :which-key "kill ring")
-	   "m" '(mu4e :which-key "mu4e")
-	   "cl" '(comment-or-uncomment-region-or-line :which-key "comment line or region")
-	   ;; Projectile
-	   "pf"  '(helm-projectile-find-file :which-key "find files")
-	   "pF"  '(helm-projectile-find-file-dwim :which-key "find files dwim")
-	   "pd"  '(helm-projectile-find-dir :which-key "find directory")
-	   "pp"  '(helm-projectile-switch-project :which-key "switch project")
-	   "pb"  '(helm-projectile-switch-to-buffer :which-key "switch to buffer")
-	   "ph"  '(helm-projectile :which-key "helm-projectile")
-	   "pr"  '(helm-projectile-recentf :which-key "recent files")
-	   "pg"  '(helm-projectile-grep :which-key "grep")
-	   "ps"  '(helm-multi-swoop-projectile :which-key "multi-swoop")
+           :states '(normal visual insert emacs)
+           :prefix "SPC"
+           :non-normal-prefix "M-SPC"
+           ;; "/"   '(counsel-rg :which-key "ripgrep") ; You'll need counsel package for this
+           "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
+           "SPC" '(helm-M-x :which-key "M-x")
+           "<f1>" '(helm-apropos :which-key "à propos")
+           "bb" '(helm-mini :which-key "helm mini")
+           "fed" '(myinit :which-key "init file")
+           "fer" '(myinitR :which-key "init file")
+           "ff" '(helm-find-files :which-key "find files")
+           "fr" '(helm-recentf :which-key "recent files")
+           "fs" '(save-buffer :which-key "save file")
+           "fS" '(save-some-buffers :which-key "save all")
+           "xw" '(write-file :which-key "write file name")
+           "y" '(helm-show-kill-ring :which-key "kill ring")
+           "m" '(mu4e :which-key "mu4e")
+           "cl" '(comment-or-uncomment-region-or-line :which-key "comment line or region")
+           ;; Projectile
+           "pf"  '(helm-projectile-find-file :which-key "find files")
+           "pF"  '(helm-projectile-find-file-dwim :which-key "find files dwim")
+           "pd"  '(helm-projectile-find-dir :which-key "find directory")
+           "pp"  '(helm-projectile-switch-project :which-key "switch project")
+           "pb"  '(helm-projectile-switch-to-buffer :which-key "switch to buffer")
+           "ph"  '(helm-projectile :which-key "helm-projectile")
+           "pr"  '(helm-projectile-recentf :which-key "recent files")
+           "pg"  '(helm-projectile-grep :which-key "grep")
+           "ps"  '(helm-multi-swoop-projectile :which-key "multi-swoop")
 
-	   ;; Buffers
-	   "bb"  '(helm-buffers-list :which-key "buffers list")
-	   ;; Window
-	   "wl"  '(windmove-right :which-key "move right")
-	   "wh"  '(windmove-left :which-key "move left")
-	   "wk"  '(windmove-up :which-key "move up")
-	   "wj"  '(windmove-down :which-key "move bottom")
-	   "w/"  '(split-window-right :which-key "split right")
-	   "w-"  '(split-window-below :which-key "split bottom")
-	   "wo"  '(other-window :which-key "other window")
-	   "wx"  '(delete-window :which-key "delete window")
-	   "qz"  '(delete-frame :which-key "delete frame")
-	   "qq"  '(kill-emacs :which-key "quit")
-	   ;; Orgmode
-	   "os"  '(helm-multi-swoop-org :which-key "quit")
-	   ;; Magit
-	   "gs"  '(magit-status : whick-key "git status")
-	   ;; Others
-	   "at"  '(urxvt :which-key "open terminal")
-	   ))
+           ;; Buffers
+           "bb"  '(helm-buffers-list :which-key "buffers list")
+           ;; Window
+           "wl"  '(windmove-right :which-key "move right")
+           "wh"  '(windmove-left :which-key "move left")
+           "wk"  '(windmove-up :which-key "move up")
+           "wj"  '(windmove-down :which-key "move bottom")
+           "w/"  '(split-window-right :which-key "split right")
+           "w-"  '(split-window-below :which-key "split bottom")
+           "wo"  '(other-window :which-key "other window")
+           "wx"  '(delete-window :which-key "delete window")
+           "qz"  '(delete-frame :which-key "delete frame")
+           "qq"  '(kill-emacs :which-key "quit")
+           ;; Orgmode
+           "os"  '(helm-multi-swoop-org :which-key "quit")
+           ;; Magit
+           "gs"  '(magit-status : whick-key "git status")
+           ;; Others
+           "at"  '(urxvt :which-key "open terminal")
+           ))
 (use-package pdf-tools
   :ensure t)
 (use-package org-pdfview
@@ -722,17 +737,17 @@ narrowed."
   (interactive "P")
   (declare (interactive-only))
   (cond ((and (buffer-narrowed-p) (not p)) (widen))
-	((region-active-p)
-	 (narrow-to-region (region-beginning) (region-end)))
-	((derived-mode-p 'org-mode)
-	 ;; `org-edit-src-code' is not a real narrowing command.
-	 ;; Remove this first conditional if you don't want it.
-	 (cond ((ignore-errors (org-edit-src-code))
-		(delete-other-windows))
-	       ((org-at-block-p)
-		(org-narrow-to-block))
-	       (t (org-narrow-to-subtree))))
-	(t (narrow-to-defun))))
+        ((region-active-p)
+         (narrow-to-region (region-beginning) (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing command.
+         ;; Remove this first conditional if you don't want it.
+         (cond ((ignore-errors (org-edit-src-code))
+                (delete-other-windows))
+               ((org-at-block-p)
+                (org-narrow-to-block))
+               (t (org-narrow-to-subtree))))
+        (t (narrow-to-defun))))
 
 ;; (define-key endless/toggle-map "n" #'narrow-or-widen-dwim)
 ;; This line actually replaces Emacs' entire narrowing keymap, that's
@@ -869,23 +884,23 @@ narrowed."
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (setq ibuffer-saved-filter-groups
       (quote (("default"
-	       ("dired" (mode . dired-mode))
-	       ("org" (name . "^.*org$"))
+               ("dired" (mode . dired-mode))
+               ("org" (name . "^.*org$"))
 
-	       ("web" (or (mode . web-mode) (mode . js2-mode)))
-	       ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
-	       ("mu4e" (name . "\*mu4e\*"))
-	       ("programming" (or
-			       (mode . python-mode)
-			       (mode . c++-mode)))
-	       ("emacs" (or
-			 (name . "^\\*scratch\\*$")
-			 (name . "^\\*Messages\\*$")))
-	       ))))
+               ("web" (or (mode . web-mode) (mode . js2-mode)))
+               ("shell" (or (mode . eshell-mode) (mode . shell-mode)))
+               ("mu4e" (name . "\*mu4e\*"))
+               ("programming" (or
+                               (mode . python-mode)
+                               (mode . c++-mode)))
+               ("emacs" (or
+                         (name . "^\\*scratch\\*$")
+                         (name . "^\\*Messages\\*$")))
+               ))))
 (add-hook 'ibuffer-mode-hook
-	  (lambda ()
-	    (ibuffer-auto-mode 1)
-	    (ibuffer-switch-to-saved-filter-groups "default")))
+          (lambda ()
+            (ibuffer-auto-mode 1)
+            (ibuffer-switch-to-saved-filter-groups "default")))
 
 (use-package ibuffer-projectile
   :ensure t
@@ -898,7 +913,7 @@ narrowed."
       (ibuffer-do-sort-by-alphabetic))))
 
 ;; don't show these
-					;(add-to-list 'ibuffer-never-show-predicates "zowie")
+                                        ;(add-to-list 'ibuffer-never-show-predicates "zowie")
 ;; Don't show filter groups if there are no buffers in that group
 (setq ibuffer-show-empty-filter-groups nil)
 
@@ -966,16 +981,16 @@ narrowed."
 
 ;; disable jshint since we prefer eslint checking
 (setq-default flycheck-disabled-checkers
-	      (append flycheck-disabled-checkers
-		      '(javascript-jshint)))
+              (append flycheck-disabled-checkers
+                      '(javascript-jshint)))
 
 ;; customize flycheck temp file prefix
 (setq-default flycheck-temp-prefix ".flycheck")
 
 ;; disable json-jsonlist checking for json files
 (setq-default flycheck-disabled-checkers
-	      (append flycheck-disabled-checkers
-		      '(json-jsonlist)))
+              (append flycheck-disabled-checkers
+                      '(json-jsonlist)))
 
 ;;; web-mode
 (use-package web-mode
@@ -1041,70 +1056,70 @@ narrowed."
 (setq mu4e-contexts
       (list
        (make-mu4e-context
-	:name "personnel"
-	:enter-func (lambda () (mu4e-message "Entering personal context"))
-	:leave-func (lambda () (mu4e-message "Leaving personal context"))
-	:match-func (lambda (msg)
-		      (when msg
-			(mu4e-message-contact-field-matches
-			 msg '(:from :to :cc :bcc) "mail@jonathanconde.com")))
-	:vars '((user-mail-address . "mail@jonathanconde.com")
-		(user-full-name . "Jonathan Conde")
-		(mu4e-sent-folder . "/work/Sent")
-		(mu4e-drafts-folder . "/work/Drafts")
-		(mu4e-trash-folder . "/work/Trash")
-		(mu4e-refile-folder . "/work/Archives")
-		(smtpmail-queue-dir . "~/.email/gmail/queue/cur")
-		(smtpmail-smtp-user . "mail@jonathanconde.com")
-		(smtpmail-starttls-credentials . (("mail.infomaniak.com" 587 nil nil)))
-		(smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
-		(smtpmail-default-smtp-server . "mail.infomaniak.com")
-		(smtpmail-smtp-server . "mail.infomaniak.com")
-		(mu4e-sent-messages-behavior . sent)
-		(smtpmail-smtp-service . 587)
-		(mu4e-maildir-shortcuts . ( ("/work/INBOX"    . ?i)
-					    ("/work/Sent"     . ?s)
-					    ("/work/Trash"    . ?t)
-					    ("/work/Archives" . ?a)
-					    ("/work/Drafts"   . ?d)
-					    ))))
+        :name "personnel"
+        :enter-func (lambda () (mu4e-message "Entering personal context"))
+        :leave-func (lambda () (mu4e-message "Leaving personal context"))
+        :match-func (lambda (msg)
+                      (when msg
+                        (mu4e-message-contact-field-matches
+                         msg '(:from :to :cc :bcc) "mail@jonathanconde.com")))
+        :vars '((user-mail-address . "mail@jonathanconde.com")
+                (user-full-name . "Jonathan Conde")
+                (mu4e-sent-folder . "/work/Sent")
+                (mu4e-drafts-folder . "/work/Drafts")
+                (mu4e-trash-folder . "/work/Trash")
+                (mu4e-refile-folder . "/work/Archives")
+                (smtpmail-queue-dir . "~/.email/gmail/queue/cur")
+                (smtpmail-smtp-user . "mail@jonathanconde.com")
+                (smtpmail-starttls-credentials . (("mail.infomaniak.com" 587 nil nil)))
+                (smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
+                (smtpmail-default-smtp-server . "mail.infomaniak.com")
+                (smtpmail-smtp-server . "mail.infomaniak.com")
+                (mu4e-sent-messages-behavior . sent)
+                (smtpmail-smtp-service . 587)
+                (mu4e-maildir-shortcuts . ( ("/work/INBOX"    . ?i)
+                                            ("/work/Sent"     . ?s)
+                                            ("/work/Trash"    . ?t)
+                                            ("/work/Archives" . ?a)
+                                            ("/work/Drafts"   . ?d)
+                                            ))))
 
        (make-mu4e-context
-	:name "gmail"
-	:enter-func (lambda () (mu4e-message "Entering gmail context"))
-	:leave-func (lambda () (mu4e-message "Leaving gmail context"))
-	:match-func (lambda (msg)
-		      (when msg
-			(mu4e-message-contact-field-matches
-			 msg '(:from :to :cc :bcc) "jonathan.conde.g@gmail.com")))
-	:vars '((user-mail-address . "jonathan.conde.g@gmail.com")
-		(user-full-name . "Jonathan Conde")
-		(mu4e-sent-folder . "/gmail/[Gmail]/Messages envoy&AOk-s")
-		(mu4e-drafts-folder . "/gmail/[Gmail]/Brouillons")
-		(mu4e-trash-folder . "/gmail/[Gmail]/Corbeille")
-		(mu4e-refile-folder . "/gmail/[Gmail]/Tous les messages")
-		(smtpmail-queue-dir . "~/.email/gmail/queue/cur")
-		(smtpmail-smtp-user . "jonathan.conde.g@gmail.com")
-		(smtpmail-starttls-credentials . (("smtp.gmail.com" 587 nil nil)))
-		(smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
-		(smtpmail-default-smtp-server . "smtp.gmail.com")
-		(smtpmail-smtp-server . "smtp.gmail.com")
-		(smtpmail-smtp-service . 587)
-		(mu4e-sent-messages-behavior . delete)
-		(mu4e-maildir-shortcuts . ( ("/gmail/INBOX"                        . ?i)
-					    ("/gmail/[Gmail]/Messages envoy&AOk-s" . ?s)
-					    ("/gmail/[Gmail]/Corbeille"            . ?t)
-					    ("/gmail/[Gmail]/Tous les messages"    . ?a)
-					    ("/gmail/[Gmail]/Brouillons"           . ?d)
-					    ))))))
+        :name "gmail"
+        :enter-func (lambda () (mu4e-message "Entering gmail context"))
+        :leave-func (lambda () (mu4e-message "Leaving gmail context"))
+        :match-func (lambda (msg)
+                      (when msg
+                        (mu4e-message-contact-field-matches
+                         msg '(:from :to :cc :bcc) "jonathan.conde.g@gmail.com")))
+        :vars '((user-mail-address . "jonathan.conde.g@gmail.com")
+                (user-full-name . "Jonathan Conde")
+                (mu4e-sent-folder . "/gmail/[Gmail]/Messages envoy&AOk-s")
+                (mu4e-drafts-folder . "/gmail/[Gmail]/Brouillons")
+                (mu4e-trash-folder . "/gmail/[Gmail]/Corbeille")
+                (mu4e-refile-folder . "/gmail/[Gmail]/Tous les messages")
+                (smtpmail-queue-dir . "~/.email/gmail/queue/cur")
+                (smtpmail-smtp-user . "jonathan.conde.g@gmail.com")
+                (smtpmail-starttls-credentials . (("smtp.gmail.com" 587 nil nil)))
+                (smtpmail-auth-credentials . (expand-file-name "~/.authinfo.gpg"))
+                (smtpmail-default-smtp-server . "smtp.gmail.com")
+                (smtpmail-smtp-server . "smtp.gmail.com")
+                (smtpmail-smtp-service . 587)
+                (mu4e-sent-messages-behavior . delete)
+                (mu4e-maildir-shortcuts . ( ("/gmail/INBOX"                        . ?i)
+                                            ("/gmail/[Gmail]/Messages envoy&AOk-s" . ?s)
+                                            ("/gmail/[Gmail]/Corbeille"            . ?t)
+                                            ("/gmail/[Gmail]/Tous les messages"    . ?a)
+                                            ("/gmail/[Gmail]/Brouillons"           . ?d)
+                                            ))))))
 
 ;; don't save messages to Sent Messages, Gmail/IMAP takes care of this
 
 ;;; Bookmarks
 (setq mu4e-bookmarks
       `(
-	("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
-	("flag:unread" "new messages" ?n)
+        ("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
+        ("flag:unread" "new messages" ?n)
         ("date:today..now" "Today's messages" ?t)
         ("date:7d..now" "Last 7 days" ?w)
         ("mime:image/*" "Messages with images" ?p)
@@ -1144,7 +1159,7 @@ narrowed."
                 (id (replace-regexp-in-string "[\/\\\\]" "_" path)))
            (add-to-list 'html-images
                         (org~mu4e-mime-file
-			 (concat "image/" ext) path id))
+                         (concat "image/" ext) path id))
            id)))
       str)
      html-images)))
@@ -1162,7 +1177,7 @@ narrowed."
 
 ;; we seem to need this to fix the org-store-link issue
 (org-link-set-parameters "mu4e" :follow #'org-mu4e-open :store 
-			 #'org-mu4e-store-link)
+                         #'org-mu4e-store-link)
 
 (load-file "~/.emacs.d/lisp/evil-mu4e.el")
 (require 'evil-mu4e)
@@ -1188,6 +1203,11 @@ narrowed."
 (use-package apache-mode
   :ensure t
   :mode ("\\.htaccess\\'" "httpd\\.conf\\'" "srm\\.conf\\'" "access\\.conf\\'"))
+
+(use-package vlf
+  :ensure t
+  :defer t
+  :pin melpa)
 
 ;; Logview provides syntax highlighting, filtering and other features for various log files
 (use-package logview
