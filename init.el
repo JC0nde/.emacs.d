@@ -114,11 +114,6 @@
   :config (save-place-mode))
 
 ;; jump to char word or line
-(use-package ace-jump-mode
-  :ensure t
-  :chords (("jj" . ace-jump-char-mode)
-           ("jk" . ace-jump-word-mode)))
-
 ;;; flashes the cursor's line when you scroll
 (use-package beacon
   :ensure t
@@ -139,12 +134,6 @@
   (global-hungry-delete-mode))
 
 (setq save-interprogram-paste-before-kill t)
-
-;; expand the marked region in semantic increments (negative prefix to reduce region)
-(use-package expand-region
-  :ensure t
-  :config
-  (global-set-key (kbd "C-=") 'er/expand-region))
 
 ;;; Set path to dependencies
 (setq settings-dir
@@ -178,6 +167,11 @@
   (setq-default evil-escape-key-sequence "fd")
   :config
   (evil-escape-mode 1))
+
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1))
 
 (use-package evil-org
   :ensure t
@@ -296,64 +290,113 @@
 ;;; Hydras
 (use-package hydra
   :ensure hydra
-  :init
-  (global-set-key
-   (kbd "C-x t")
-   (defhydra hydra-git-gutter (:body-pre (git-gutter+-mode 1)
-                                         :hint nil)
-     "
-Git gutter:
-^^^^^^^^-----------------------------------------------------------------
-  _j_: next hunk        _s_tage hunk     _q_uit
-  _k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
-  ^ ^                   _p_opup hunk
-  _h_: first hunk
-  _l_: last hunk        set start _R_evision
+  :bind
+  ("C-c g" . hydra-git-gutter/body)
+  ("C-c f" . hydra-flycheck/body)
+  ("C-c ." . hydra-web/body)
+  :config
+  (defhydra hydra-git-gutter (:body-pre (git-gutter+-mode 1)
+                                        :hint nil)
+    "
+^
+^Git gutter^
+^───────────────────────────────────────────────────────────
+_j_: next hunk        _s_tage hunk     _q_uit
+_k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
+^^                    _p_opup hunk     ^^
+_h_: first hunk
+_l_: last hunk        set start _R_evision
+^^                    ^^               ^^
 "
-     ("j" git-gutter+-next-hunk)
-     ("k" git-gutter+-previous-hunk)
-     ("h" (progn (goto-char (point-min))
-                 (git-gutter+-next-hunk 1)))
-     ("l" (progn (goto-char (point-min))
-                 (git-gutter+-previous-hunk 1)))
-     ("s" git-gutter+-stage-hunk)
-     ("r" git-gutter+-revert-hunk)
-     ("p" git-gutter+-popup-hunk)
-     ("R" git-gutter+-set-start-revision)
-     ("q" nil :color blue)
-     ("Q" (progn (git-gutter+-mode -1)
-                 ;; git-gutter-fringe doesn't seem to
-                 ;; clear the markup right away
-                 (sit-for 0.1)
-                 (git-gutter+-clear))
-      :color blue))))
+    ("j" git-gutter+-next-hunk)
+    ("k" git-gutter+-previous-hunk)
+    ("h" (progn (goto-char (point-min))
+                (git-gutter+-next-hunk 1)))
+    ("l" (progn (goto-char (point-min))
+                (git-gutter+-previous-hunk 1)))
+    ("s" git-gutter+-stage-hunk)
+    ("r" git-gutter+-revert-hunk)
+    ("p" git-gutter+-popup-hunk)
+    ("R" git-gutter+-set-start-revision)
+    ("q" nil :color blue)
+    ("Q" (progn (git-gutter+-mode -1)
+                ;; git-gutter-fringe doesn't seem to
+                ;; clear the markup right away
+                (sit-for 0.1)
+                (git-gutter+-clear))
+     :color blue))
+
+  (defhydra hydra-flycheck (:color pink :hint nil)
+    "
+^
+^Flycheck^          ^Errors^            ^Checker^
+^────────^──────────^──────^────────────^───────^───────────
+_q_ quit            _k_ previous        _?_ describe
+_m_ manual          _j_ next            _d_ disable
+_v_ verify setup    _f_ check           _s_ select
+^^                  _l_ list            ^^
+^^                  ^^                  ^^
+"
+    ("q" nil)
+    ("k" flycheck-previous-error)
+    ("j" flycheck-next-error)
+    ("?" flycheck-describe-checker :color blue)
+    ("d" flycheck-disable-checker :color blue)
+    ("f" flycheck-buffer)
+    ("l" flycheck-list-errors :color blue)
+    ("m" flycheck-manual :color blue)
+    ("s" flycheck-select-checker :color blue)
+    ("v" flycheck-verify-setup :color blue))
+
+  (defhydra hydra-web (:color pink :hint nil)
+    "
+^
+^Web-mode^
+^───────────────────────────────────────────────────────────
+_q_ quit            _h_ parent       _c_ clone 
+_m_ manual          _j_ next         _d_ delete
+^^                  _k_ previous     _r_ rename
+^^                  _l_ child        _w_ wrap
+^^                  ^^               ^^
+"
+    ("q" nil)
+    ("m" flycheck-manual :color blue)
+    ("h" web-mode-element-parent)
+    ("j" web-mode-element-next)
+    ("k" web-mode-element-previous)
+    ("l" web-mode-element-child)
+    ("c" web-mode-element-clone :color blue)
+    ("d" web-mode-element-vanish :color blue)
+    ("r" web-mode-element-rename :color blue)
+    ("w" web-mode-element-wrap :color blue)
+  ))
 
 ;;; Smartparens
 (use-package smartparens
-  :ensure t
-  :hook ((
-          emacs-lisp-mode lisp-mode hy-mode go-mode cc-mode
-          python-mode typescript-mode javascript-mode java-mode
-          ) . smartparens-strict-mode)
-  :custom
-  (sp-escape-quotes-after-insert nil)
-  :config
-  (show-smartparens-global-mode +1)
-  (setq blink-matching-paren nil)
-  (setq sp-base-key-bindings 'paredit)
-  (setq sp-autoskip-closing-pair 'always)
-  (require 'smartparens-config)
-  (smartparens-global-mode t))
+:ensure t
+:hook ((
+        emacs-lisp-mode lisp-mode hy-mode go-mode cc-mode
+        python-mode typescript-mode javascript-mode java-mode
+        ) . smartparens-strict-mode)
+:custom
+(sp-escape-quotes-after-insert nil)
+:config
+(show-smartparens-global-mode +1)
+(setq blink-matching-paren nil)
+(setq sp-base-key-bindings 'paredit)
+(setq sp-autoskip-closing-pair 'always)
+(require 'smartparens-config)
+(smartparens-global-mode t))
 
 (use-package no-littering
-  :ensure t
-  :demand t
-  :config
-  ;; /etc is version controlled and I want to store mc-lists in git
-  (setq mc/list-file (no-littering-expand-etc-file-name "mc-list.el"))
-  ;; Put the auto-save files in the var directory to the other data files
-  (setq auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+:ensure t
+:demand t
+:config
+;; /etc is version controlled and I want to store mc-lists in git
+(setq mc/list-file (no-littering-expand-etc-file-name "mc-list.el"))
+;; Put the auto-save files in the var directory to the other data files
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
 (use-package recentf
   :ensure t
@@ -432,7 +475,7 @@ Git gutter:
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (vlf logview ibuffer-projectile ace-jump-mode use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime expand-region aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (vlf logview ibuffer-projectile use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
@@ -697,7 +740,7 @@ Git gutter:
            ;; Magit
            "gs"  '(magit-status : whick-key "git status")
            ;; Others
-           "at"  '(urxvt :which-key "open terminal")
+           "t"  '(ansi-term :which-key "open terminal")
            ))
 (use-package pdf-tools
   :ensure t)
@@ -935,9 +978,6 @@ narrowed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Language Supports ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
-(use-package json-mode
-  :ensure t
-  :mode "\\.json\\'")
 
 ;;; JavaScript
 (use-package js2-mode
@@ -986,11 +1026,6 @@ narrowed."
 
 ;; customize flycheck temp file prefix
 (setq-default flycheck-temp-prefix ".flycheck")
-
-;; disable json-jsonlist checking for json files
-(setq-default flycheck-disabled-checkers
-              (append flycheck-disabled-checkers
-                      '(json-jsonlist)))
 
 ;;; web-mode
 (use-package web-mode
@@ -1243,7 +1278,6 @@ narrowed."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#212121" :foreground "#eeffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "nil" :family "Source Code Pro"))))
- '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 1.5))))
  '(font-lock-constant-face ((t (:foreground "#C792EA"))))
  '(font-lock-keyword-face ((t (:foreground "#2BA3FF" :slant italic))))
  '(font-lock-preprocessor-face ((t (:inherit bold :foreground "#2BA3FF" :slant italic :weight normal))))
