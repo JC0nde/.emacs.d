@@ -85,43 +85,37 @@
 ;; Newline at end of file
 (setq require-final-newline t)
 
-(use-package material-theme
-  :ensure t
-  :config (load-theme 'material t))
-
 ;;; Bootstrap `use-package'
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
 
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+(use-package use-package-ensure-system-package)
+
 ;; up-to-date packages
 (use-package auto-package-update
-  :ensure t
   :config
   (setq auto-package-update-delete-old-versions t)
   (setq auto-package-update-hide-results t)
   (auto-package-update-maybe))
 
-;; key-chords to use-pacakge
-(use-package use-package-chords
-  :ensure t
-  :config (key-chord-mode 1))
+(use-package material-theme
+  :config (load-theme 'material t))
 
 ;; Remeber last position
 (use-package saveplace
-  :ensure t
   :unless noninteractive
   :config (save-place-mode))
 
 ;; jump to char word or line
 ;;; flashes the cursor's line when you scroll
 (use-package beacon
-  :ensure t
   :config
   (beacon-mode 1))
 
 (use-package linum-relative
-  :ensure t
   :config
   (linum-relative-mode)
   (setq linum-relative-current-symbol "")
@@ -129,7 +123,6 @@
 
 ;;; deletes all the whitespace when you hit backspace or delete
 (use-package hungry-delete
-  :ensure t
   :config
   (global-hungry-delete-mode))
 
@@ -157,24 +150,20 @@
 
 ;;; Vim mode
 (use-package evil
-  :ensure t
   :config
   (evil-mode 1))
 
 (use-package evil-escape
-  :ensure t
   :init
   (setq-default evil-escape-key-sequence "fd")
   :config
   (evil-escape-mode 1))
 
 (use-package evil-surround
-  :ensure t
   :config
   (global-evil-surround-mode 1))
 
 (use-package evil-org
-  :ensure t
   :after org
   :config
   (add-hook 'org-mode-hook 'evil-org-mode)
@@ -186,7 +175,6 @@
 
 ;; Tramp
 (use-package tramp
-  :ensure t
   :defer t
   :config
   (setq tramp-default-method "ssh")
@@ -216,7 +204,6 @@
 
 ;;; Helm
 (use-package helm
-  :ensure t
   :init
   (setq helm-M-x-fuzzy-match t
         helm-mode-fuzzy-match t
@@ -243,36 +230,7 @@
   (setq helm-buffer-skip-remote-checking t)
   (helm-mode 1))
 
-;; Helm-swoop
-(use-package helm-swoop
-  :ensure t
-  :config
-  (global-set-key (kbd "M-s") 'helm-swoop-without-pre-input)
-
-  ;; Move up and down like isearch
-  (define-key helm-swoop-map (kbd "C-k") 'helm-previous-line)
-  (define-key helm-swoop-map (kbd "C-j") 'helm-next-line)
-  (define-key helm-multi-swoop-map (kbd "C-k") 'helm-previous-line)
-  (define-key helm-multi-swoop-map (kbd "C-j") 'helm-next-line)
-
-  ;; When doing isearch, hand the word over to helm-swoop
-  (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
-
-  ;; When doing evil-search, hand the word over to helm-swoop
-  (define-key evil-motion-state-map (kbd "M-i") 'helm-swoop-from-evil-search)
-
-  ;; If this value is t, split window inside the current window
-  (setq helm-swoop-split-with-multiple-windows nil)
-
-  ;; Save buffer when helm-multi-swoop-edit complete
-  (setq helm-multi-swoop-edit-save t)
-
-  ;;face for line numbers
-  (setq helm-swoop-use-line-number-face t)
-  )
-
 (use-package epa
-  :ensure t
   :config
   (require 'epa-file)
   (epa-file-enable)
@@ -281,7 +239,6 @@
   (setq epa-replace-original-text t))
 
 (use-package epg
-  :ensure t
   :config
   ;; Let Emacs query the passphrase through the minibuffer
   (setq epg-pinentry-mode 'loopback))
@@ -369,37 +326,34 @@ _m_ manual          _j_ next         _d_ delete
     ("d" web-mode-element-vanish :color blue)
     ("r" web-mode-element-rename :color blue)
     ("w" web-mode-element-wrap :color blue)
-  ))
+    ))
 
 ;;; Smartparens
 (use-package smartparens
-:ensure t
-:hook ((
-        emacs-lisp-mode lisp-mode hy-mode go-mode cc-mode
-        python-mode typescript-mode javascript-mode java-mode
-        ) . smartparens-strict-mode)
-:custom
-(sp-escape-quotes-after-insert nil)
-:config
-(show-smartparens-global-mode +1)
-(setq blink-matching-paren nil)
-(setq sp-base-key-bindings 'paredit)
-(setq sp-autoskip-closing-pair 'always)
-(require 'smartparens-config)
-(smartparens-global-mode t))
+  :hook ((
+          emacs-lisp-mode lisp-mode hy-mode go-mode cc-mode
+          python-mode typescript-mode javascript-mode java-mode
+          ) . smartparens-strict-mode)
+  :custom
+  (sp-escape-quotes-after-insert nil)
+  :config
+  (show-smartparens-global-mode +1)
+  (setq blink-matching-paren nil)
+  (setq sp-base-key-bindings 'paredit)
+  (setq sp-autoskip-closing-pair 'always)
+  (require 'smartparens-config)
+  (smartparens-global-mode t))
 
 (use-package no-littering
-:ensure t
-:demand t
-:config
-;; /etc is version controlled and I want to store mc-lists in git
-(setq mc/list-file (no-littering-expand-etc-file-name "mc-list.el"))
-;; Put the auto-save files in the var directory to the other data files
-(setq auto-save-file-name-transforms
-      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
+  :demand t
+  :config
+  ;; /etc is version controlled and I want to store mc-lists in git
+  (setq mc/list-file (no-littering-expand-etc-file-name "mc-list.el"))
+  ;; Put the auto-save files in the var directory to the other data files
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))))
 
 (use-package recentf
-  :ensure t
   :config
   (add-to-list 'recentf-exclude "^/\\(?:ssh\\|su\\|sudo\\)?:")
   (add-to-list 'recentf-exclude no-littering-var-directory)
@@ -413,7 +367,6 @@ _m_ manual          _j_ next         _d_ delete
 
 ;;; Which Key
 (use-package which-key
-  :ensure t
   :init
   (setq which-key-separator " → ")
   (setq which-key-prefix-prefix "+")
@@ -421,12 +374,10 @@ _m_ manual          _j_ next         _d_ delete
   (which-key-mode 1))
 
 ;;; Try package
-(use-package try
-  :ensure t)
+(use-package try)
 
 ;;; Undo Tree
 (use-package undo-tree
-  :ensure t
   :config
   (setq undo-tree-visualizer-timestamps t)
   (setq undo-tree-history-directory-alist
@@ -448,14 +399,12 @@ _m_ manual          _j_ next         _d_ delete
 
 ;;; OrgMode setup
 (use-package org
-  :ensure t
   :pin org
   :config
   ;; Some characters to choose from: …, ⤵, ▼, ↴, ⬎, ⤷, and ⋱
   (setq org-ellipsis "⤵"))
 
 (use-package org-bullets
-  :ensure t
   :config
   (add-hook 'org-mode-hook (lambda ()(org-bullets-mode 1))))
 
@@ -475,7 +424,7 @@ _m_ manual          _j_ next         _d_ delete
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (vlf logview ibuffer-projectile use-package-chords apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (helm-rg rg vlf logview ibuffer-projectile apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
@@ -592,7 +541,6 @@ _m_ manual          _j_ next         _d_ delete
                      ("\\.x?html?\\'" . default)
                      ("\\.pdf\\'" . "zathura %s")))))
 
-
 (global-set-key "\C-ca" 'org-agenda)
 (setq org-agenda-start-on-weekday nil)
 (setq org-agenda-custom-commands
@@ -660,7 +608,7 @@ _m_ manual          _j_ next         _d_ delete
 
 (setq org-ditaa-jar-path "/usr/share/ditaa/ditaa.jar")
 (setq org-cycle-separator-lines 0)
-(setenv "BROWSER" "chromium-browser")
+(setenv "BROWSER" "firefox")
 
 ;; skip multiple timestamps for the same entry
 (setq org-agenda-skip-additional-timestamps-same-entry t)
@@ -676,8 +624,7 @@ _m_ manual          _j_ next         _d_ delete
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)
 
-(use-package htmlize
-  :ensure t)
+(use-package htmlize)
 
 (defun comment-or-uncomment-region-or-line ()
   "Comments or uncomments the region or the current line if there's no active region."
@@ -691,12 +638,10 @@ _m_ manual          _j_ next         _d_ delete
 
 ;;; Custom keybinding
 (use-package general
-  :ensure t
   :config (general-define-key
            :states '(normal visual insert emacs)
            :prefix "SPC"
            :non-normal-prefix "M-SPC"
-           ;; "/"   '(counsel-rg :which-key "ripgrep") ; You'll need counsel package for this
            "TAB" '(switch-to-prev-buffer :which-key "previous buffer")
            "SPC" '(helm-M-x :which-key "M-x")
            "<f1>" '(helm-apropos :which-key "à propos")
@@ -720,10 +665,10 @@ _m_ manual          _j_ next         _d_ delete
            "ph"  '(helm-projectile :which-key "helm-projectile")
            "pr"  '(helm-projectile-recentf :which-key "recent files")
            "pg"  '(helm-projectile-grep :which-key "grep")
-           "ps"  '(helm-multi-swoop-projectile :which-key "multi-swoop")
-
+           
            ;; Buffers
            "bb"  '(helm-buffers-list :which-key "buffers list")
+
            ;; Window
            "wl"  '(windmove-right :which-key "move right")
            "wh"  '(windmove-left :which-key "move left")
@@ -735,17 +680,14 @@ _m_ manual          _j_ next         _d_ delete
            "wx"  '(delete-window :which-key "delete window")
            "qz"  '(delete-frame :which-key "delete frame")
            "qq"  '(kill-emacs :which-key "quit")
-           ;; Orgmode
-           "os"  '(helm-multi-swoop-org :which-key "quit")
+
            ;; Magit
            "gs"  '(magit-status : whick-key "git status")
            ;; Others
            "t"  '(ansi-term :which-key "open terminal")
            ))
-(use-package pdf-tools
-  :ensure t)
-(use-package org-pdfview
-  :ensure t)
+(use-package pdf-tools)
+(use-package org-pdfview)
 
 (require 'pdf-tools)
 (require 'org-pdfview)
@@ -764,8 +706,7 @@ _m_ manual          _j_ next         _d_ delete
   (load-file "~/.emacs.d/init.el"))
 
 ;;; mark and edit all copies of the marked region simultaniously.
-(use-package iedit
-  :ensure t)
+(use-package iedit)
 
 ;;; if you're windened, narrow to the region, if you're narrowed, widen
 ;;; bound to C-x n
@@ -799,13 +740,11 @@ narrowed."
 
 ;;; Flycheck
 (use-package flycheck
-  :ensure t
   :init
   (global-flycheck-mode))
 
 ;; Yasnippet
 (use-package yasnippet
-  :ensure t
   :defer 10
   :mode (("\\.yasnippet\\'" . snippet-mode))
   :bind (:map yas-minor-mode-map
@@ -830,7 +769,6 @@ narrowed."
 
 ;;; Projectile
 (use-package projectile
-  :ensure t
   :bind ("C-c p" . projectile-command-map)
   :config
   (projectile-mode 1)
@@ -839,14 +777,13 @@ narrowed."
 
 ;;; Helm Projectile
 (use-package helm-projectile
-  :ensure t
   :init
   (setq helm-projectile-fuzzy-match t)
   :config
   (helm-projectile-on))
 
 ;;; All The Icons
-(use-package all-the-icons :ensure t)
+(use-package all-the-icons)
 
 ;;; Show matching parens
 (setq show-paren-delay 0)
@@ -854,7 +791,6 @@ narrowed."
 
 ;;; Powerline
 (use-package spaceline
-  :ensure t
   :init
   (setq powerline-default-separator 'slant)
   :config
@@ -867,7 +803,6 @@ narrowed."
 
 ;;; Company
 (use-package company
-  :ensure t
   :bind (:map company-active-map
               ([return] . nil)
               ("RET" . nil)
@@ -893,7 +828,7 @@ narrowed."
                             company-pseudo-tooltip-frontend
                             company-echo-metadata-frontend)))
 
-(setq company-idle-delay 0.1)
+(setq company-idle-delay 0)
 (setq company-tooltip-limit 10)
 (setq company-minimum-prefix-length 1)
 ;; Aligns annotation to the right hand side
@@ -907,21 +842,17 @@ narrowed."
 (global-company-mode 1)
 
 (use-package magit
-  :ensure t
   :init
   (progn
     (bind-key "C-x g" 'magit-status)))
 
-(use-package fringe-helper
-  :ensure t)
+(use-package fringe-helper)
 
 (use-package git-gutter-fringe+
-  :ensure t
   :init
   (global-git-gutter+-mode +1))
 
-(use-package git-timemachine
-  :ensure t)
+(use-package git-timemachine)
 
 ;;; ibuffer
 (global-set-key (kbd "C-x C-b") 'ibuffer)
@@ -946,7 +877,6 @@ narrowed."
             (ibuffer-switch-to-saved-filter-groups "default")))
 
 (use-package ibuffer-projectile
-  :ensure t
   :hook (ibuffer . ibuffer-projectile-init)
   :commands ibuffer-projectile-init
   :config
@@ -965,14 +895,12 @@ narrowed."
 
 ;;; Emmet
 (use-package emmet-mode
-  :ensure t
   :hook (web-mode sgml-mode css-mode)
   :config
   (setq emmet-move-cursor-between-quotes t)
   (setq emmet-move-cursor-after-expanding t))
 
 (use-package rainbow-mode
-  :ensure t
   :hook (css-mode scss-mode sass-mode emacs-lisp-mode hy-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -981,7 +909,6 @@ narrowed."
 
 ;;; JavaScript
 (use-package js2-mode
-  :ensure t
   :ensure ac-js2
   :mode ("\\.js\\'" "\\.pac\\'" "\\.node\\'")
   :init
@@ -995,7 +922,6 @@ narrowed."
   )
 
 (use-package js2-refactor
-  :ensure t
   :config
   (progn
     (js2r-add-keybindings-with-prefix "C-c C-m")
@@ -1006,12 +932,10 @@ narrowed."
 (setq exec-path (append exec-path '("/usr/local/bin")))
 
 (use-package tern
-  :ensure tern
   :commands tern-mode
   :init (add-hook 'js-mode-hook 'tern-mode)
   :config
   (use-package company-tern
-    :ensure t
     :config
     (setq company-tern-property-marker "")
     (add-to-list 'company-backends 'company-tern)))
@@ -1029,7 +953,6 @@ narrowed."
 
 ;;; web-mode
 (use-package web-mode
-  :ensure t
   :config
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
@@ -1054,7 +977,6 @@ narrowed."
   (setq web-mode-style-padding 0))
 
 (use-package aggressive-indent
-  :ensure t
   :config
   (global-aggressive-indent-mode 1)
   ;;(add-to-list 'aggressive-indent-excluded-modes 'html-mode)
@@ -1097,7 +1019,7 @@ narrowed."
         :match-func (lambda (msg)
                       (when msg
                         (mu4e-message-contact-field-matches
-                         msg '(:from :to :cc :bcc) "mail@jonathanconde.com")))
+                         msg '(:to) "mail@jonathanconde.com")))
         :vars '((user-mail-address . "mail@jonathanconde.com")
                 (user-full-name . "Jonathan Conde")
                 (mu4e-sent-folder . "/work/Sent")
@@ -1126,7 +1048,7 @@ narrowed."
         :match-func (lambda (msg)
                       (when msg
                         (mu4e-message-contact-field-matches
-                         msg '(:from :to :cc :bcc) "jonathan.conde.g@gmail.com")))
+                         msg '(:to) "jonathan.conde.g@gmail.com")))
         :vars '((user-mail-address . "jonathan.conde.g@gmail.com")
                 (user-full-name . "Jonathan Conde")
                 (mu4e-sent-folder . "/gmail/[Gmail]/Messages envoy&AOk-s")
@@ -1167,7 +1089,6 @@ narrowed."
 (setq-default org-mu4e-link-query-in-headers-mode nil)
 
 (use-package org-mime
-  :ensure t
   :commands (org-mime-htmlize org-mime-org-buffer-htmlize org-mime-org-subtree-htmlize)
   :bind (:map message-mode-map ("C-c M-o" . org-mime-htmlize)
               :map org-mode-map ("C-c M-o" . org-mime-org-subtree-htmlize))
@@ -1200,8 +1121,7 @@ narrowed."
      html-images)))
 
 ;; Alerts
-(use-package mu4e-alert
-  :ensure t)
+(use-package mu4e-alert)
 
 (mu4e-alert-set-default-style 'libnotify)
 (add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
@@ -1218,7 +1138,6 @@ narrowed."
 (require 'evil-mu4e)
 
 (use-package helm-mu
-  :ensure t
   :config
   (require 'helm-config))
 
@@ -1236,17 +1155,14 @@ narrowed."
             (flyspell-mode)))
 
 (use-package apache-mode
-  :ensure t
   :mode ("\\.htaccess\\'" "httpd\\.conf\\'" "srm\\.conf\\'" "access\\.conf\\'"))
 
 (use-package vlf
-  :ensure t
   :defer t
   :pin melpa)
 
 ;; Logview provides syntax highlighting, filtering and other features for various log files
 (use-package logview
-  :ensure t
   :defer t
   :config
   (setq logview-additional-submodes
@@ -1254,18 +1170,19 @@ narrowed."
            (format . "TIMESTAMP [THREAD] {} LEVEL NAME -")
            (levels . "SLF4J")))))
 
+(use-package rg
+  :ensure-system-package rg)
+
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; (use-package simple-httpd
-;;   :ensure t
 ;;   :config
 ;;   (setq httpd-root "~/LocalDev/")
 ;;   (httpd-start))
 
 ;; (use-package skewer-mode
-;;   :ensure t
 ;;   :config
 ;;   (add-hook 'js2-mode-hook 'skewer-mode)
 ;;   (add-hook 'css-mode-hook 'skewer-css-mode)
