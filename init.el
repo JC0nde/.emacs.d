@@ -101,8 +101,14 @@
   (setq auto-package-update-hide-results t)
   (auto-package-update-maybe))
 
-(use-package material-theme
-  :config (load-theme 'material t))
+;; (use-package material-theme
+;;   :config (load-theme 'material t))
+
+(use-package solarized-theme
+  :init
+  (setq x-underline-at-descent-line t)
+  :config
+  (load-theme 'solarized-dark t))
 
 ;; Remeber last position
 (use-package saveplace
@@ -424,7 +430,7 @@ _m_ manual          _j_ next         _d_ delete
  '(org-startup-indented t)
  '(package-selected-packages
    (quote
-    (helm-rg rg vlf logview ibuffer-projectile apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
+    (telephone-line helm-rg rg vlf logview ibuffer-projectile apache-mode evil-mu4e evil-org helm-mu mu4e-alert org-mime aggressive-indent linum-relative org-pdfview pdf-tools iedit magit hungry-delete beacon all-the-icons projectile general which-key helm evil-escape evil use-package)))
  '(safe-local-variable-values
    (quote
     ((eval progn
@@ -789,17 +795,21 @@ narrowed."
 (setq show-paren-delay 0)
 (show-paren-mode 1)
 
-;;; Powerline
-(use-package spaceline
+;; ;;; Powerline
+(use-package telephone-line
   :init
-  (setq powerline-default-separator 'slant)
+  (setq telephone-line-lhs
+        '((evil   . (telephone-line-evil-tag-segment))
+          (accent . (telephone-line-vc-segment
+                     telephone-line-erc-modified-channels-segment
+                     telephone-line-process-segment))
+          (nil    . (telephone-line-buffer-segment))))
+  (setq telephone-line-rhs
+        '((nil    . (telephone-line-misc-info-segment))
+          (accent . (telephone-line-major-mode-segment))
+          (evil   . (telephone-line-airline-position-segment))))
   :config
-  (spaceline-emacs-theme)
-  (spaceline-helm-mode)
-  (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
-  (spaceline-toggle-minor-modes-off)
-  (spaceline-toggle-buffer-size-off)
-  (spaceline-toggle-evil-state-on))
+  (telephone-line-mode t))
 
 ;;; Company
 (use-package company
@@ -955,14 +965,15 @@ narrowed."
 (use-package web-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.twig?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.vue?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
   (setq web-mode-engines-alist
         '(("php"    . "\\.phtml\\'")
-          ("blade"  . "\\.blade\\.")
-          ("twig"   . "\\.twig\\.")))
+          ("blade"  . "\\.blade\\.")))
+
   (setq web-mode-ac-sources-alist
         '(("css" . (ac-source-css-property))
           ("vue" . (ac-source-words-in-buffer ac-source-abbrev))
@@ -1171,7 +1182,14 @@ narrowed."
            (levels . "SLF4J")))))
 
 (use-package rg
-  :ensure-system-package rg)
+  :ensure-system-package rg
+  :config (rg-enable-default-bindings))
+
+(setq rg-align-position-numbers t)
+(setq rg-align-line-number-field-length 3)
+(setq rg-align-column-number-field-length 3)
+(setq rg-align-line-column-separator "#")
+(setq rg-align-position-content-separator "|")
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Live dev setup  ;;;
@@ -1194,33 +1212,8 @@ narrowed."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#212121" :foreground "#eeffff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "nil" :family "Source Code Pro"))))
- '(font-lock-constant-face ((t (:foreground "#C792EA"))))
- '(font-lock-keyword-face ((t (:foreground "#2BA3FF" :slant italic))))
- '(font-lock-preprocessor-face ((t (:inherit bold :foreground "#2BA3FF" :slant italic :weight normal))))
- '(font-lock-string-face ((t (:foreground "#C3E88D"))))
- '(font-lock-type-face ((t (:foreground "#FFCB6B"))))
- '(font-lock-variable-name-face ((t (:foreground "#FF5370"))))
- '(helm-rg-active-arg-face ((t (:foreground "LightGreen"))))
- '(helm-rg-file-match-face ((t (:foreground "LightGreen" :underline t))))
- '(helm-rg-preview-line-highlight ((t (:background "LightGreen" :foreground "black"))))
- '(linum ((t (:inherit (shadow default) :background "#212121" :foreground "#586e75"))))
- '(linum-relative-current-face ((t (:background "#212121" :foreground "#2BA3FF" :box nil))))
- '(mode-line ((t (:background "#191919" :box nil))))
- '(mode-line-inactive ((t (:background "#282828" :foreground "#5B6268" :box nil))))
- '(term ((t (:foreground "#fafafa")))))
-(set-face-attribute 'fringe nil :background "#212121")
-(set-face-attribute 'org-hide nil :background "#212121")
-
-(setq org-todo-keyword-faces
-      (quote (("TODO" :foreground "red" :weight bold)
-              ("NEXT" :foreground "blue" :weight bold)
-              ("DONE" :foreground "forest green" :weight bold)
-              ("WAITING" :foreground "orange" :weight bold)
-              ("HOLD" :foreground "magenta" :weight bold)
-              ("CANCELLED" :foreground "forest green" :weight bold)
-              ("MEETING" :foreground "forest green" :weight bold)
-              ("PHONE" :foreground "forest green" :weight bold))))
+ '(font-lock-keyword-face ((t (:slant italic))))
+ '(font-lock-preprocessor-face ((t (:inherit bold :slant italic :weight normal)))))
 
 (provide 'init)
 
